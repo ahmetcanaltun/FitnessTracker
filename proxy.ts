@@ -24,7 +24,10 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Statik dosyalar ve auth endpoint'leri hariç her yol
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/).*)",
+    // Statik dosyalar, auth endpoint'leri ve PWA varlıkları hariç her yol.
+    // sw.js ve /offline oturumsuz erişilebilir olmalı: service worker kurulum
+    // sırasında /offline'ı önceden saklıyor, yönlendirme yakalarsa /login
+    // sayfasını çevrimdışı sayfası sanıp saklardı.
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|manifest.webmanifest|icons/|sw.js|offline).*)",
   ],
 };
