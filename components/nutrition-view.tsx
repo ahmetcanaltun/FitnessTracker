@@ -2,7 +2,8 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Droplet, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Droplet, LineChart, Plus, Trash2 } from "lucide-react";
 import { formatNum, ringColor } from "@/lib/design";
 import { MEAL_LABELS, MEAL_TYPES } from "@/lib/meals";
 import type { MealType } from "@/lib/generated/prisma/enums";
@@ -89,8 +90,18 @@ export function NutritionView({
 
   return (
     <div className="px-5 pt-6 pb-28">
-      <p className="text-sm text-muted">Bugün</p>
-      <h1 className="font-display text-2xl mb-5">BESLENME</h1>
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p className="text-sm text-muted">Bugün</p>
+          <h1 className="font-display text-2xl">BESLENME</h1>
+        </div>
+        <Link
+          href="/nutrition/history"
+          className="fit-chip inline-flex items-center gap-1.5 mt-1"
+        >
+          <LineChart size={13} /> Geçmiş
+        </Link>
+      </div>
 
       {/* Kalori halkası — disk rozetinin beslenme sekmesindeki karşılığı */}
       <div className="flex flex-col items-center mb-6">
