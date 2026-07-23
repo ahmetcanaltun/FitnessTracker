@@ -1,0 +1,166 @@
+// Fitness Takip Uygulaması — veri şeması
+// Referans: plan.md §4
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  member
+  admin
+}
+
+enum MealType {
+  kahvalti
+  ogle
+  aksam
+  atistirmalik
+}
+
+enum FoodSource {
+  openfoodfacts
+  usda
+  manual
+}
+
+model User {
+  id String @id @default(cuid())
+  // Ekranda görünen ad — serbest metin, Türkçe karakter olabilir
+  name String
+  // Giriş kimliği. Küçük harf ASCII (bkz. lib/username.ts): Türkçe "İ"nin
+  // toLowerCase() sonucu birleşik karakter ürettiği için kullanıcı adlarında
+  // Türkçe karaktere izin verilmiyor.
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(member)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  exerciseEntries ExerciseEntry[]
+  mealEntries     MealEntry[]
+  waterEntries    WaterEntry[]
+  nutritionGoal   NutritionGoal?
+
+  @@map("users")
+}
+
+model Exercise {
+  id               String   @id @default(cuid())
+  name             String
+  nameEn           String?  @map("name_en")
+  category         String?
+  primaryMuscle    String?  @map("primary_muscle")
+  secondaryMuscles String[] @map("secondary_muscles")
+  equipment        String?
+  imageUrl         String?  @map("image_url")
+  // wger kaynak referansı: sync script'i bu alanla upsert yapar
+  wgerId           Int?     @unique @map("wger_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  entries ExerciseEntry[]
+
+  @@index([primaryMuscle])
+  @@index([name])
+  @@map("exercises")
+}
+
+model ExerciseEntry {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  exerciseId  String   @map("exercise_id")
+  weightKg    Decimal  @map("weight_kg") @db.Decimal(6, 2)
+  reps        Int
+  sets        Int
+  performedAt DateTime @map("performed_at") @db.Date
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  // İlerleme grafiği ve PR sorguları bu sıralamayla çalışır
+  @@index([userId, exerciseId, performedAt])
+  @@index([userId, performedAt])
+  @@map("exercise_entries")
+}
+
+model FoodItem {
+  id     String  @id @default(cuid())
+  name   String
+  nameEn String? @map("name_en")
+  brand  String?
+  // "100g", "adet", "dilim", "30g" gibi — porsiyon çarpanının birimi
+  unit   String
+
+  kcalPerUnit Decimal @map("kcal_per_unit") @db.Decimal(8, 2)
+  proteinG    Decimal @map("protein_g") @db.Decimal(8, 2)
+  carbsG      Decimal @map("carbs_g") @db.Decimal(8, 2)
+  fatG        Decimal @map("fat_g") @db.Decimal(8, 2)
+
+  source     FoodSource @default(manual)
+  externalId String?    @map("external_id")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  entries MealEntry[]
+
+  @@unique([source, externalId])
+  @@index([name])
+  @@map("food_items")
+}
+
+model MealEntry {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  foodItemId String   @map("food_item_id")
+  mealType   MealType @map("meal_type")
+  quantity   Decimal  @db.Decimal(8, 2)
+
+  // Kayıt anında hesaplanıp satıra kopyalanır: FoodItem'ın besin değeri
+  // ileride düzeltilse bile geçmiş kayıtlar değişmez (plan.md §4).
+  kcal     Decimal @db.Decimal(8, 2)
+  proteinG Decimal @map("protein_g") @db.Decimal(8, 2)
+  carbsG   Decimal @map("carbs_g") @db.Decimal(8, 2)
+  fatG     Decimal @map("fat_g") @db.Decimal(8, 2)
+
+  loggedAt  DateTime @map("logged_at") @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id], onDelete: Restrict)
+
+  @@index([userId, loggedAt])
+  @@map("meal_entries")
+}
+
+model NutritionGoal {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  kcalGoal         Int      @default(2600) @map("kcal_goal")
+  proteinGoal      Int      @default(180) @map("protein_goal")
+  carbsGoal        Int      @default(280) @map("carbs_goal")
+  fatGoal          Int      @default(80) @map("fat_goal")
+  waterGoalGlasses Int      @default(8) @map("water_goal_glasses")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("nutrition_goals")
+}
+
+model WaterEntry {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  date       DateTime @db.Date
+  glassCount Int      @default(0) @map("glass_count")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Gün başına tek satır: buton her basıldığında upsert edilir
+  @@unique([userId, date])
+  @@map("water_entries")
+}
