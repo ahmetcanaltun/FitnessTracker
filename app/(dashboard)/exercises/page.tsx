@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Flame, Minus, TrendingDown, TrendingUp } from "lucide-react";
+import { Flame, Minus, TrendingDown, TrendingUp, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatNum, plateColor } from "@/lib/design";
+import { formatNum, plateColor, upper } from "@/lib/design";
 import { relativeDayLabel } from "@/lib/dates";
 import { ExerciseSearch } from "@/components/exercise-search";
 import { Sparkline } from "@/components/sparkline";
@@ -106,7 +106,7 @@ export default async function ExercisesPage({
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm text-muted">Merhaba,</p>
-            <h1 className="font-display text-3xl">{user.name.toUpperCase()}</h1>
+            <h1 className="font-display text-3xl">{upper(user.name)}</h1>
           </div>
           <div className="flex items-center gap-1 px-3 py-2 rounded-full fit-input">
             <Flame size={14} style={{ color: "var(--color-plate-red)" }} />
@@ -134,6 +134,7 @@ export default async function ExercisesPage({
           const history = historyByExercise.get(exercise.id) ?? [];
           const last = history.at(-1);
           const prev = history.at(-2);
+          const pr = history.reduce((max, h) => Math.max(max, h.kg), 0);
           const colors = plateColor(last?.kg ?? 0);
 
           const trend = prev && last
@@ -182,10 +183,26 @@ export default async function ExercisesPage({
                   {exercise.name}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  {exercise.category && <span className="fit-tag">{exercise.category}</span>}
+                  {/* Son kayıt aynı zamanda rekorsa kategori yerine PR rozeti */}
+                  {last && last.kg >= pr ? (
+                    <span
+                      className="fit-tag inline-flex items-center gap-1"
+                      style={{ background: "rgba(232,183,44,0.16)", color: "var(--color-plate-yellow)" }}
+                    >
+                      <Trophy size={10} /> PR
+                    </span>
+                  ) : (
+                    exercise.category && <span className="fit-tag">{exercise.category}</span>
+                  )}
                   <span className="font-mono text-muted" style={{ fontSize: "11px" }}>
                     {last ? relativeDayLabel(last.date) : (exercise.equipment ?? "")}
                   </span>
+                  {/* Güncel ağırlık rekorun altındaysa hedefi göster */}
+                  {last && pr > last.kg && (
+                    <span className="font-mono text-muted" style={{ fontSize: "11px" }}>
+                      · rekor {formatNum(pr)}
+                    </span>
+                  )}
                 </div>
               </div>
 

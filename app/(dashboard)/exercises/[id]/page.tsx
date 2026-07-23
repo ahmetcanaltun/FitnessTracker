@@ -1,22 +1,36 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatNum, plateColor } from "@/lib/design";
+import { formatNum, plateColor, upper } from "@/lib/design";
 import { relativeDayLabel, shortDateLabel, todayISO } from "@/lib/dates";
 import { CountUp } from "@/components/count-up";
 import { NewEntrySheet } from "@/components/new-entry-sheet";
 import { ProgressChart } from "@/components/progress-chart";
 import { StatBox } from "@/components/stat-box";
 
+function numberParam(
+  value: string | string[] | undefined,
+  fallback: number | null,
+): number | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw) return fallback;
+  const parsed = Number(raw.replace(",", "."));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
 export default async function ExerciseDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const user = await requireUser();
   const { id } = await params;
+  // Rutinden gelindiyse hedefler URL'de taşınır ve panel hazır açılır
+  const sp = await searchParams;
 
   const exercise = await prisma.exercise.findUnique({ where: { id } });
   if (!exercise) notFound();
@@ -74,7 +88,7 @@ export default async function ExerciseDetailPage({
         )}
 
         <h2 className="font-display mt-4" style={{ fontSize: "26px" }}>
-          {exercise.name.toUpperCase()}
+          {upper(exercise.name)}
         </h2>
         <p className="text-sm mt-1 text-muted">
           {[exercise.category, exercise.equipment].filter(Boolean).join(" · ")}
@@ -108,29 +122,50 @@ export default async function ExerciseDetailPage({
         <>
           <h3 className="font-semibold mb-3">Son Kayıtlar</h3>
           <div className="flex flex-col gap-2">
-            {[...history].reverse().slice(0, 8).map((h) => (
-              <div key={h.id} className="flex items-center justify-between fit-card px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div
-                    style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "9999px",
-                      background: plateColor(h.kg).bg,
-                    }}
-                  />
-                  <span className="font-mono text-sm">{shortDateLabel(h.date)}</span>
+            {[...history].reverse().slice(0, 8).map((h) => {
+              // Rekora eşit kayıtlar altın çerçeveyle işaretlenir
+              const isPr = pr > 0 && h.kg >= pr;
+              return (
+                <div
+                  key={h.id}
+                  className="flex items-center justify-between fit-card px-4 py-3"
+                  style={
+                    isPr
+                      ? { borderColor: "rgba(232,183,44,0.45)", background: "rgba(232,183,44,0.06)" }
+                      : undefined
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    {isPr ? (
+                      <Trophy size={13} style={{ color: "var(--color-plate-yellow)" }} />
+                    ) : (
+                      <div
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "9999px",
+                          background: plateColor(h.kg).bg,
+                        }}
+                      />
+                    )}
+                    <span className="font-mono text-sm">{shortDateLabel(h.date)}</span>
+                  </div>
+                  <div className="flex items-center gap-3 font-mono text-sm text-muted">
+                    <span>
+                      {h.sets}x{h.reps}
+                    </span>
+                    <span
+                      style={{
+                        color: isPr ? "var(--color-plate-yellow)" : "var(--color-ink)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {formatNum(h.kg)} kg
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 font-mono text-sm text-muted">
-                  <span>
-                    {h.sets}x{h.reps}
-                  </span>
-                  <span style={{ color: "var(--color-ink)", fontWeight: 600 }}>
-                    {formatNum(h.kg)} kg
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
@@ -138,7 +173,10 @@ export default async function ExerciseDetailPage({
       <NewEntrySheet
         exerciseId={exercise.id}
         exerciseName={exercise.name}
-        lastWeight={last?.kg ?? 20}
+        lastWeight={numberParam(sp.kg, last?.kg ?? 20) ?? 20}
+        defaultSets={numberParam(sp.set, null) ?? 3}
+        defaultReps={numberParam(sp.tekrar, null) ?? 5}
+        autoOpen={sp.kayit === "1"}
         today={todayISO()}
       />
     </div>
