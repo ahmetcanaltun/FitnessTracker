@@ -1,0 +1,18 @@
+# Bu bloğu SUNUCUDAKİ ORTAK Caddyfile'a ekleyin — bu repoda Caddy servisi yok.
+#
+# Caddy sertifikayı ve HTTP -> HTTPS yönlendirmesini kendisi hallediyor;
+# uygulama tarafında TLS ile ilgili hiçbir ayar yok.
+#
+# Ön koşul: ortak ağ mevcut olmalı ve Caddy container'ı da bu ağa bağlı olmalı.
+#   docker network create web
+
+fitness.senindomainin.com {
+	encode zstd gzip
+
+	# fitness_track_web = docker-compose.yml'deki container_name
+	reverse_proxy fitness_track_web:3000
+}
+
+# Caddy, reverse_proxy'de X-Forwarded-For / X-Forwarded-Proto / X-Forwarded-Host
+# header'larını varsayılan olarak ekler. Uygulama tarafında AUTH_TRUST_HOST=true
+# olduğu için Auth.js şemayı ve host'u bu header'lardan okur.

@@ -1,0 +1,17 @@
+# Sadece yerel geliştirme için ek katman: veritabanı portunu localhost'a açar.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+#   npm run dev
+#
+# Ayrı dosya olmasının sebebi: `docker-compose.override.yml` adı verilseydi
+# sunucuda da otomatik yüklenir ve portu istemeden dışarı açardı.
+#
+# Not: yerelde tüm stack'i (app dahil) ayağa kaldırmak isterseniz ortak ağın
+# var olması gerekir — `docker network create web`.
+
+services:
+  db:
+    ports:
+      # 0.0.0.0 değil 127.0.0.1: port sadece bu makineden erişilebilir.
+      # Host'taki olası bir Postgres ile çakışmasın diye 5433.
+      - "127.0.0.1:5433:5432"

@@ -1,0 +1,118 @@
+# Production stack: db + migrate + app
+#
+# Bu stack ORTAK bir Caddy reverse proxy'nin arkasında çalışır. Proxy 80/443'ü
+# tutar ve HTTPS'i kendisi halleder — burada hiçbir port host'a açılmaz,
+# sertifika/TLS/yönlendirme ayarı yapılmaz.
+#
+# Proxy, `web` adlı external network üzerinden `fitness_track_web` container'ına
+# 3000 portundan bağlanır. Ortak Caddyfile'a eklenecek satır:
+#
+#     fitness.senindomainin.com {
+#         reverse_proxy fitness_track_web:3000
+#     }
+#
+# `web` ağı bu compose tarafından oluşturulmaz, önceden var olmalı:
+#
+#     docker network create web
+#
+# Yerel geliştirmede db portuna ihtiyaç var; bunun için ayrı dosya:
+#     docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fitness}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD tanimlanmali}
+      POSTGRES_DB: ${POSTGRES_DB:-fitness}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Sadece iç ağ — proxy'nin veritabanına erişmesi gerekmiyor
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fitness} -d ${POSTGRES_DB:-fitness}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Şema migration'ları. Tek seferlik çalışıp çıkar; app bunu bekler.
+  # Ayrı servis olmasının sebebi: app imajı Next standalone çıktısı olduğu için
+  # Prisma CLI'nin tüm bağımlılık ağacını içermiyor.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitness}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD tanimlanmali}@db:5432/${POSTGRES_DB:-fitness}?schema=public
+    networks:
+      - default
+    command: ["npx", "prisma", "migrate", "deploy"]
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Ortak proxy bu isimle bağlanır — sabit olmalı
+    container_name: fitness_track_web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      # Compose ağı içinde db'ye servis adıyla erişilir
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitness}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD tanimlanmali}@db:5432/${POSTGRES_DB:-fitness}?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET tanimlanmali}
+      # Proxy'nin sunduğu genel adres (https://...). Auth.js callback URL'lerini
+      # bundan üretir.
+      AUTH_URL: ${AUTH_URL:?AUTH_URL tanimlanmali}
+      # Proxy arkasında olduğumuzu Auth.js'e bildirir: X-Forwarded-Host ve
+      # X-Forwarded-Proto header'larına güvenip şemayı/host'u oradan okur.
+      AUTH_TRUST_HOST: "true"
+      NODE_ENV: production
+    networks:
+      - web      # ortak proxy bu ağdan ulaşıyor
+      - default  # db ve migrate bu ağda
+    # ports TANIMLANMAZ: trafik host portundan değil, proxy üzerinden gelir.
+
+  # Seed / bakım komutları için tek seferlik container.
+  # `builder` stage'i kullanır: tsx ve tüm dev bağımlılıkları burada mevcut.
+  #   docker compose run --rm tools npm run seed:admin
+  #   docker compose run --rm tools npm run seed:exercises
+  #   docker compose run --rm tools npm run seed:foods
+  tools:
+    profiles: ["tools"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fitness}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD tanimlanmali}@db:5432/${POSTGRES_DB:-fitness}?schema=public
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+    networks:
+      - default
+    entrypoint: []
+    command: ["sh"]
+
+networks:
+  # Ortak proxy ile paylaşılan ağ — bu compose oluşturmaz.
+  #   docker network create web
+  web:
+    external: true
+  default:
+
+volumes:
+  pgdata:
