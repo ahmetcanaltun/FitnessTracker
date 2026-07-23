@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Görsel referans prototipi — uygulama kodu değil (plan.md §12)
+    "fitness-app-demo.jsx",
+    // prisma generate çıktısı
+    "lib/generated/**",
   ]),
 ]);
 

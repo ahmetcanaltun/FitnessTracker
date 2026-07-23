@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma generate çıktısı (schema.prisma -> generator client.output)
+/lib/generated/prisma
+
+# .env.example takip edilsin
+!.env.example
+
+# Prisma'nın kurduğu editör/agent skill dosyaları (prisma init ile yeniden üretilir)
+/.claude/skills/
+/.agents/
+/.windsurf/
+/skills-lock.json
