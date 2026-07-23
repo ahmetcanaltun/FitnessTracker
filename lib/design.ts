@@ -1,6 +1,17 @@
 // Tasarım sistemi yardımcıları — fitness-app-demo.jsx'ten birebir taşındı (plan.md §12).
 // Bu dosya client component'lerden de import edildiği için sunucuya özel hiçbir şey içermez.
 
+/**
+ * Türkçe kurallarına göre büyük harf.
+ *
+ * Düz `toUpperCase()` "i" harfini "I" yapar; Türkçe'de "İ" olmalı
+ * ("İtiş Günü" -> "İTIŞ GÜNÜ" yerine "İTİŞ GÜNÜ"). Başlıklar büyük harfle
+ * gösterildiği için bu fark her ekranda görünür.
+ */
+export function upper(value: string): string {
+  return value.toLocaleUpperCase("tr");
+}
+
 /** Ondalık ayırıcı virgül, gereksiz sıfır yok: 92.5 -> "92,5", 100.0 -> "100" */
 export function formatNum(n: number): string {
   const r = Math.round(n * 10) / 10;

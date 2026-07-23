@@ -3,6 +3,7 @@ import { LogOut, Users } from "lucide-react";
 import { requireUser, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { monthYearLabel } from "@/lib/dates";
+import { upper } from "@/lib/design";
 import { StatBox } from "@/components/stat-box";
 import { GoalForm } from "@/components/goal-form";
 
@@ -24,8 +25,8 @@ export default async function ProfilePage() {
 
   return (
     <div className="px-5 pt-10 pb-28 flex flex-col items-center text-center">
-      <div className="avatar-circle mb-4">{user.name.charAt(0).toUpperCase()}</div>
-      <h2 className="font-display text-2xl">{user.name.toUpperCase()}</h2>
+      <div className="avatar-circle mb-4">{upper(user.name.charAt(0))}</div>
+      <h2 className="font-display text-2xl">{upper(user.name)}</h2>
       <p className="text-sm text-muted">@{user.username}</p>
       <p className="text-sm mb-6 text-muted">Üyelik: {monthYearLabel(user.createdAt)}</p>
 
