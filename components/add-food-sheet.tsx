@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Minus, Plus, Search, X } from "lucide-react";
+import { Check, Globe, Minus, Plus, Search, X } from "lucide-react";
 import { formatNum } from "@/lib/design";
 import { MEAL_LABELS, MEAL_TYPES } from "@/lib/meals";
 import type { MealType } from "@/lib/generated/prisma/enums";
-import { searchFoods, type FoodOption } from "@/app/actions/foods";
+import type { OffProduct } from "@/lib/openfoodfacts";
+import { importFood, searchFoods, searchOnline, type FoodOption } from "@/app/actions/foods";
 import { saveMealEntry } from "@/app/actions/nutrition";
 
 export function AddFoodSheet({
@@ -29,7 +30,12 @@ export function AddFoodSheet({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Arama sunucuda yapılır: katalog büyüdükçe (Faz 3 — Open Food Facts)
+  const [online, setOnline] = useState<OffProduct[]>([]);
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [importing, setImporting] = useState<string | null>(null);
+
+  // Arama sunucuda yapılır: katalog büyüdükçe (içe aktarılan OFF ürünleriyle)
   // istemciye tüm listeyi göndermek gerekmesin.
   useEffect(() => {
     let cancelled = false;
@@ -43,6 +49,45 @@ export function AddFoodSheet({
       clearTimeout(timeout);
     };
   }, [query]);
+
+  // Yazı değişince önceki internet sonuçları kalmasın — effect yerine
+  // doğrudan handler'da, aksi halde gereksiz bir render turu oluşuyor.
+  function updateQuery(value: string) {
+    setQuery(value);
+    setOnline([]);
+    setOnlineError(null);
+  }
+
+  function runOnlineSearch() {
+    setOnlineError(null);
+    setSearching(true);
+    startTransition(async () => {
+      const result = await searchOnline(query);
+      setSearching(false);
+      if (result.ok) {
+        setOnline(result.products);
+      } else {
+        setOnlineError(result.error);
+      }
+    });
+  }
+
+  /** OFF sonucu seçilince önce yerel tabloya aktarılır, sonra miktar ekranına geçilir. */
+  function pickOnline(product: OffProduct) {
+    setImporting(product.code);
+    startTransition(async () => {
+      try {
+        const food = await importFood(product);
+        setSelected(food);
+        setQuantity(1);
+        setOnline([]);
+      } catch {
+        setOnlineError("Ürün aktarılamadı.");
+      } finally {
+        setImporting(null);
+      }
+    });
+  }
 
   function save() {
     if (!selected) return;
@@ -100,7 +145,7 @@ export function AddFoodSheet({
               <Search size={16} style={{ color: "var(--color-muted)" }} />
               <input
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => updateQuery(e.target.value)}
                 placeholder="Besin ara (tavuk, pirinç...)"
                 aria-label="Besin ara"
                 className="bg-transparent outline-none w-full text-sm"
@@ -123,10 +168,53 @@ export function AddFoodSheet({
                   </span>
                 </button>
               ))}
-              {foods.length === 0 && (
-                <p className="text-sm text-center py-4 text-muted">Sonuç bulunamadı.</p>
+
+              {/* İnternet sonuçları — henüz kaydedilmedi, seçilince aktarılır */}
+              {online.map((product) => (
+                <button
+                  key={product.code}
+                  onClick={() => pickOnline(product)}
+                  disabled={importing !== null}
+                  className="fit-card flex items-center justify-between px-4 py-3 text-left w-full gap-3"
+                  style={{ borderStyle: "dashed", opacity: importing === product.code ? 0.5 : 1 }}
+                >
+                  <span className="min-w-0">
+                    <span className="text-sm block truncate">{product.name}</span>
+                    <span className="text-muted" style={{ fontSize: "10px" }}>
+                      {product.brand ? `${product.brand} · ` : ""}Open Food Facts
+                    </span>
+                  </span>
+                  <span className="font-mono text-muted shrink-0" style={{ fontSize: "12px" }}>
+                    {formatNum(product.kcal)} kcal / 100g
+                  </span>
+                </button>
+              ))}
+
+              {foods.length === 0 && online.length === 0 && !searching && (
+                <p className="text-sm text-center py-4 text-muted">
+                  {query.trim() ? "Yerel listede yok." : "Sonuç bulunamadı."}
+                </p>
+              )}
+
+              {searching && (
+                <p className="text-sm text-center py-3 text-muted">İnternette aranıyor...</p>
+              )}
+
+              {onlineError && (
+                <p className="text-sm text-center py-2 text-muted">{onlineError}</p>
               )}
             </div>
+
+            {/* Yerel katalog yetmediğinde açık bir kaçış yolu */}
+            {query.trim().length >= 3 && online.length === 0 && !searching && (
+              <button
+                onClick={runOnlineSearch}
+                className="fit-card w-full mt-3 py-3 flex items-center justify-center gap-2 text-sm"
+                style={{ color: "var(--color-plate-blue)" }}
+              >
+                <Globe size={15} /> Open Food Facts&apos;te ara
+              </button>
+            )}
           </>
         ) : (
           <>
