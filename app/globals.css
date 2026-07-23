@@ -1,26 +1,438 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Tasarım sistemi — fitness-app-demo.jsx'ten taşındı (plan.md §12).
+ * Prototipte renkler inline style ile veriliyordu; burada Tailwind v4 teması
+ * olarak tanımlı, yani `bg-surface`, `text-muted`, `font-display` gibi
+ * utility'ler doğrudan kullanılabiliyor.
+ */
+@theme {
+  --color-bg: #17181b;
+  --color-surface: #212226;
+  --color-surface-2: #292a2f;
+  --color-ink: #f5f4f0;
+  --color-muted: #8b8d93;
+  --color-plate-red: #e8412c;
+  --color-plate-blue: #2f6fed;
+  --color-plate-yellow: #e8b72c;
+  --color-plate-green: #3caa5c;
+  --color-hairline: rgba(255, 255, 255, 0.08);
+
+  --font-display: var(--font-bebas), sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
+
+  --radius-card: 20px;
+  --radius-sheet: 24px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  /* İmza nokta dokusu */
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.035) 1px, transparent 0);
+  background-size: 22px 22px;
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .fit-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: var(--radius-card);
+  }
+
+  .fit-input {
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+  }
+
+  .fit-tag {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-muted);
+  }
+
+  .fit-chip {
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 13px;
+    border: 1px solid var(--color-hairline);
+    color: var(--color-muted);
+    background: var(--color-surface);
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .fit-chip[data-active="true"] {
+    background: var(--color-plate-red);
+    color: #fff;
+    border-color: var(--color-plate-red);
+  }
+
+  /* İmza öğe: yarışma diski rozeti */
+  .plate-badge {
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow:
+      inset 0 2px 4px rgba(255, 255, 255, 0.25),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+      0 4px 10px rgba(0, 0, 0, 0.35);
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .plate-badge::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+  }
+
+  button:active .plate-badge,
+  .plate-badge:active {
+    transform: rotate(14deg) scale(0.94);
+  }
+
+  .plate-badge-lg {
+    width: 140px;
+    height: 140px;
+    border-radius: 9999px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow:
+      inset 0 4px 8px rgba(255, 255, 255, 0.25),
+      inset 0 -6px 12px rgba(0, 0, 0, 0.28),
+      0 10px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .plate-badge-lg::after {
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border-radius: 9999px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .plate-badge-lg::before {
+    content: "";
+    position: absolute;
+    inset: 30px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .stepper-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink);
+    transition: transform 0.15s;
+  }
+
+  .stepper-btn:active {
+    transform: scale(0.9);
+  }
+
+  .quick-chip {
+    padding: 5px 10px;
+    border-radius: 9999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-muted);
+    transition: transform 0.15s;
+  }
+
+  .quick-chip:active {
+    transform: scale(0.95);
+  }
+
+  .field-label {
+    font-size: 11px;
+    color: var(--color-muted);
+    margin-bottom: 6px;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .mini-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    color: var(--color-ink);
+  }
+
+  .save-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--color-plate-red);
+    color: #fff;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.15s;
+  }
+
+  .save-btn:active {
+    transform: scale(0.97);
+  }
+
+  .save-btn:disabled {
+    opacity: 0.55;
+  }
+
+  .bar-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .add-food-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 9999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    color: var(--color-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .water-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 9999px;
+    background: var(--color-plate-blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: transform 0.15s;
+    box-shadow: 0 4px 12px rgba(47, 111, 237, 0.4);
+  }
+
+  .water-btn:active {
+    transform: scale(0.9);
+  }
+
+  .sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 30;
+    animation: fadeIn 0.25s ease both;
+  }
+
+  .sheet-panel {
+    width: 100%;
+    max-width: 384px;
+    background: var(--color-surface-2);
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    padding: 14px 20px calc(28px + env(safe-area-inset-bottom));
+    animation: sheetUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 9999px;
+    margin: 0 auto 16px;
+  }
+
+  .pr-badge {
+    position: absolute;
+    top: -6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-plate-yellow);
+    color: #1a1b1e;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    animation: prPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    z-index: 5;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    background: rgba(23, 24, 27, 0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--color-hairline);
+    z-index: 20;
+  }
+
+  .nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 8px;
+    background: none;
+    border: none;
+  }
+
+  .fab {
+    position: fixed;
+    right: 20px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 9999px;
+    background: var(--color-plate-red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(232, 65, 44, 0.45);
+    z-index: 20;
+    transition: transform 0.2s;
+    border: none;
+  }
+
+  .fab:active {
+    transform: scale(0.92);
+  }
+
+  .avatar-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, var(--color-plate-red), var(--color-plate-yellow));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: #fff;
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-enter {
+  animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes dropPop {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.drop-row {
+  animation: dropPop 0.3s ease both;
+}
+
+@keyframes prPop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-plate-red);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
