@@ -51,3 +51,7 @@ next-env.d.ts
 /.agents/
 /.windsurf/
 /skills-lock.json
+
+# Yerel kalsın, repoya girmesin
+plan.md
+CLAUDE.md
