@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fitness Takip
 
-## Getting Started
+Kişisel/aile kullanımı için self-hosted egzersiz ve beslenme takip uygulaması.
+Detaylı proje planı: [`plan.md`](./plan.md).
 
-First, run the development server:
+Next.js 16 · Prisma 7 · PostgreSQL 16 · Auth.js v5 · Tailwind v4 · Docker Compose
+
+## Yerel geliştirme
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env          # değerleri doldur (AUTH_SECRET: openssl rand -base64 32)
+docker compose up -d db       # Postgres -> localhost:5433
+npm install
+npx prisma generate           # Prisma Client'ı üret (gitignore'da)
+npm run db:migrate            # şemayı uygula
+
+npm run seed:exercises        # wger'den ~850 egzersiz
+npm run seed:foods            # 77 çekirdek besin
+npm run seed:admin            # ilk admin hesabı (.env'deki ADMIN_* değerleriyle)
+
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Üç seed script'i de idempotent — tekrar çalıştırmak kopya oluşturmaz.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## VPS'e kurulum
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ön koşul: bir domain adının VPS'in IP'sine yönlendirilmiş olması (Caddy otomatik
+HTTPS için gerekli).
 
-## Learn More
+```bash
+cp .env.example .env          # APP_DOMAIN, AUTH_SECRET, POSTGRES_PASSWORD, ADMIN_* doldur
+docker compose up -d          # db + migrate + app + caddy
 
-To learn more about Next.js, take a look at the following resources:
+docker compose run --rm tools npm run seed:exercises
+docker compose run --rm tools npm run seed:foods
+docker compose run --rm tools npm run seed:admin
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`migrate` servisi her açılışta `prisma migrate deploy` çalıştırıp çıkar; `app`
+tamamlanmasını bekler. Postgres verisi `pgdata` volume'ünde kalıcıdır.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Yedekleme:
 
-## Deploy on Vercel
+```bash
+docker compose exec -T db pg_dump -U fitness fitness > yedek.sql
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Kullanım
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Kayıt formu yok — hesaplar yönetici tarafından **Profil → Kullanıcı Yönetimi**
+ekranından eklenir (`plan.md` §13).
+
+Sekmeler: **Hareketler** (egzersiz ara, kg/set/tekrar kaydet, ilerleme grafiği),
+**Beslenme** (öğün bazlı besin, kalori/makro halkası, su sayacı), **İlerleme**
+(hareket bazlı kişisel rekorlar), **Profil** (hedefler, yönetim, çıkış).
+
+## Komutlar
+
+| Komut | Açıklama |
+|---|---|
+| `npm run dev` / `build` / `start` | Next.js |
+| `npm run lint` / `typecheck` | ESLint / tsc |
+| `npm run db:migrate` / `db:deploy` / `db:studio` | Prisma |
+| `npm run seed:exercises` / `seed:foods` / `seed:admin` | Veri yükleme |
+
+## Veri kaynakları
+
+Egzersizler [wger](https://wger.de) (CC-BY-SA), besin değerleri USDA FoodData
+Central referanslı. Uygulama herkese açılırsa atıf satırı eklenmeli (`plan.md` §13).
