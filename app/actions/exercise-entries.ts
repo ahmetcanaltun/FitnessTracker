@@ -1,0 +1,87 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { dateFromISO, todayISO } from "@/lib/dates";
+
+const entrySchema = z.object({
+  exerciseId: z.string().min(1),
+  weightKg: z.number().min(0).max(999),
+  reps: z.number().int().min(1).max(999),
+  sets: z.number().int().min(1).max(99),
+  performedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  notes: z.string().max(500).optional(),
+});
+
+export type SaveEntryResult =
+  | { ok: true; isNewPr: boolean }
+  | { ok: false; error: string };
+
+export async function saveExerciseEntry(input: unknown): Promise<SaveEntryResult> {
+  const user = await requireUser();
+
+  const parsed = entrySchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Girilen değerler geçersiz." };
+  }
+  const { exerciseId, weightKg, reps, sets, performedAt, notes } = parsed.data;
+
+  const exercise = await prisma.exercise.findUnique({
+    where: { id: exerciseId },
+    select: { id: true },
+  });
+  if (!exercise) {
+    return { ok: false, error: "Hareket bulunamadı." };
+  }
+
+  // PR kontrolü kayıt *eklenmeden önce* yapılır: mevcut en yüksek ağırlık
+  const previousBest = await prisma.exerciseEntry.aggregate({
+    where: { userId: user.id, exerciseId },
+    _max: { weightKg: true },
+  });
+  const best = previousBest._max.weightKg ? Number(previousBest._max.weightKg) : 0;
+  const isNewPr = weightKg > best;
+
+  await prisma.exerciseEntry.create({
+    data: {
+      userId: user.id,
+      exerciseId,
+      weightKg,
+      reps,
+      sets,
+      performedAt: dateFromISO(performedAt),
+      notes: notes?.trim() || null,
+    },
+  });
+
+  revalidatePath("/exercises");
+  revalidatePath(`/exercises/${exerciseId}`);
+  revalidatePath("/progress");
+  revalidatePath("/profile");
+
+  return { ok: true, isNewPr };
+}
+
+export async function deleteExerciseEntry(entryId: string) {
+  const user = await requireUser();
+
+  // deleteMany + userId filtresi: başkasının kaydını silmeyi imkânsız kılar
+  const result = await prisma.exerciseEntry.deleteMany({
+    where: { id: entryId, userId: user.id },
+  });
+
+  if (result.count === 0) {
+    return { ok: false as const, error: "Kayıt bulunamadı." };
+  }
+
+  revalidatePath("/exercises");
+  revalidatePath("/progress");
+  return { ok: true as const };
+}
+
+/** Yeni kayıt panelinin varsayılan tarihi */
+export async function getToday() {
+  return todayISO();
+}
