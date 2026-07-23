@@ -34,6 +34,14 @@ export const metadata: Metadata = {
     // iOS'ta durum çubuğu koyu zeminle kaynaşsın
     statusBarStyle: "black-translucent",
   },
+  other: {
+    // Next 16 `capable: true` için standart <meta name="mobile-web-app-capable">
+    // yayınlıyor; iOS'un tarihsel olarak güvendiği apple- önekli sürümü
+    // çıkmıyor. Yeni WebKit manifest'teki display:standalone'u okuyor ama
+    // eski iOS sürümleri okumuyor — bu satır olmadan ana ekrandan açılan
+    // uygulama tarayıcı çubuğuyla açılabiliyor.
+    "apple-mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
