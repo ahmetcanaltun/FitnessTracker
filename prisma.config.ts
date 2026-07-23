@@ -10,5 +10,9 @@ export default defineConfig({
   },
   datasource: {
     url: process.env["DATABASE_URL"],
+    // Migration'ları doğrulamak/diff almak için Prisma'nın geçici olarak
+    // oluşturup düşürdüğü veritabanı. Sadece geliştirme CLI'ında kullanılır;
+    // `migrate deploy` (production) buna ihtiyaç duymaz.
+    shadowDatabaseUrl: process.env["SHADOW_DATABASE_URL"],
   },
 });

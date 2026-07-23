@@ -17,17 +17,25 @@ export function NewEntrySheet({
   exerciseName,
   lastWeight,
   today,
+  defaultSets = 3,
+  defaultReps = 5,
+  autoOpen = false,
 }: {
   exerciseId: string;
   exerciseName: string;
   lastWeight: number;
   today: string;
+  /** Rutinden gelen hedef set/tekrar */
+  defaultSets?: number;
+  defaultReps?: number;
+  /** Rutinde "kaydet"e basıldıysa panel doğrudan açılır */
+  autoOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [weight, setWeight] = useState(lastWeight);
-  const [sets, setSets] = useState(3);
-  const [reps, setReps] = useState(5);
+  const [sets, setSets] = useState(defaultSets);
+  const [reps, setReps] = useState(defaultReps);
   const [performedAt, setPerformedAt] = useState(today);
   const [error, setError] = useState<string | null>(null);
   const [celebrating, setCelebrating] = useState(false);
@@ -35,8 +43,8 @@ export function NewEntrySheet({
 
   function openSheet() {
     setWeight(lastWeight);
-    setSets(3);
-    setReps(5);
+    setSets(defaultSets);
+    setReps(defaultReps);
     setPerformedAt(today);
     setError(null);
     setOpen(true);

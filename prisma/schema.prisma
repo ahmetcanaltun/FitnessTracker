@@ -44,8 +44,43 @@ model User {
   mealEntries     MealEntry[]
   waterEntries    WaterEntry[]
   nutritionGoal   NutritionGoal?
+  routines        Routine[]
 
   @@map("users")
+}
+
+// Faz 4 — antrenman programı / rutin
+model Routine {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  name      String
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items RoutineItem[]
+
+  @@index([userId])
+  @@map("routines")
+}
+
+model RoutineItem {
+  id         String @id @default(cuid())
+  routineId  String @map("routine_id")
+  exerciseId String @map("exercise_id")
+  // Rutin içindeki sıra
+  position   Int
+  // Hedef değerler — kayıt panelini önceden doldurmak için
+  targetSets Int?     @map("target_sets")
+  targetReps Int?     @map("target_reps")
+  targetWeightKg Decimal? @map("target_weight_kg") @db.Decimal(6, 2)
+
+  routine  Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([routineId, position])
+  @@map("routine_items")
 }
 
 model Exercise {
@@ -61,7 +96,8 @@ model Exercise {
   wgerId           Int?     @unique @map("wger_id")
   createdAt        DateTime @default(now()) @map("created_at")
 
-  entries ExerciseEntry[]
+  entries      ExerciseEntry[]
+  routineItems RoutineItem[]
 
   @@index([primaryMuscle])
   @@index([name])

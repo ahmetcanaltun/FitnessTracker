@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Dumbbell, User, Utensils } from "lucide-react";
+import { Activity, Dumbbell, ListChecks, User, Utensils } from "lucide-react";
 
 const TABS = [
   { href: "/exercises", label: "Hareketler", icon: Dumbbell },
+  { href: "/routines", label: "Rutinler", icon: ListChecks },
   { href: "/nutrition", label: "Beslenme", icon: Utensils },
   { href: "/progress", label: "İlerleme", icon: Activity },
   { href: "/profile", label: "Profil", icon: User },
