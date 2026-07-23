@@ -10,6 +10,3 @@ export const MEAL_LABELS: Record<MealType, string> = {
   atistirmalik: "Atıştırmalık",
 };
 
-export function isMealType(value: string): value is MealType {
-  return (MEAL_TYPES as readonly string[]).includes(value);
-}

@@ -22,10 +22,6 @@ export function todayISO(): string {
   return local.toISOString().slice(0, 10);
 }
 
-/** Bugünün UTC gece yarısına sabitlenmiş Date karşılığı */
-export function today(): Date {
-  return dateFromISO(todayISO());
-}
 
 /** "Bugün", "Dün", "3 gün önce", "2 hafta önce", "5 ay önce" */
 export function relativeDayLabel(d: Date, reference = new Date()): string {

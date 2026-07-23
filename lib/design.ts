@@ -36,14 +36,3 @@ export function ringColor(pct: number): string {
   return "#2F6FED";
 }
 
-export const COLORS = {
-  bg: "#17181B",
-  surface: "#212226",
-  surface2: "#292A2F",
-  text: "#F5F4F0",
-  textMuted: "#8B8D93",
-  red: "#E8412C",
-  blue: "#2F6FED",
-  yellow: "#E8B72C",
-  green: "#3CAA5C",
-} as const;

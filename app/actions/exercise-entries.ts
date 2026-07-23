@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { dateFromISO, todayISO } from "@/lib/dates";
+import { dateFromISO } from "@/lib/dates";
 
 const entrySchema = z.object({
   exerciseId: z.string().min(1),
@@ -64,24 +64,4 @@ export async function saveExerciseEntry(input: unknown): Promise<SaveEntryResult
   return { ok: true, isNewPr };
 }
 
-export async function deleteExerciseEntry(entryId: string) {
-  const user = await requireUser();
 
-  // deleteMany + userId filtresi: başkasının kaydını silmeyi imkânsız kılar
-  const result = await prisma.exerciseEntry.deleteMany({
-    where: { id: entryId, userId: user.id },
-  });
-
-  if (result.count === 0) {
-    return { ok: false as const, error: "Kayıt bulunamadı." };
-  }
-
-  revalidatePath("/exercises");
-  revalidatePath("/progress");
-  return { ok: true as const };
-}
-
-/** Yeni kayıt panelinin varsayılan tarihi */
-export async function getToday() {
-  return todayISO();
-}

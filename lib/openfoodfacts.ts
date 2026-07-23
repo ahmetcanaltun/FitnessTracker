@@ -13,7 +13,6 @@
 // kabul edilemez bir hata oranı.
 const SEARCH_URL = "https://search.openfoodfacts.org/search";
 const LEGACY_SEARCH_URL = "https://world.openfoodfacts.org/cgi/search.pl";
-const PRODUCT_URL = "https://world.openfoodfacts.org/api/v2/product";
 
 // OFF dokümantasyonu tanımlayıcı bir User-Agent istiyor
 const USER_AGENT = "fitness-track-app/0.1 (self-hosted personal tracker)";
@@ -71,7 +70,7 @@ function firstBrand(brands: string | string[] | undefined): string | null {
  * değeri boş bırakılmış çok sayıda kayıt var, bunları eklemek kullanıcıya
  * 0 kalorili sahte kayıt olarak geri döner.
  */
-export function normalizeProduct(raw: RawProduct): OffProduct | null {
+function normalizeProduct(raw: RawProduct): OffProduct | null {
   const code = raw.code?.trim();
   if (!code) return null;
 
@@ -166,12 +165,3 @@ export async function searchProducts(query: string, limit = 15): Promise<OffProd
   }
 }
 
-/** Barkodla tek ürün — ileride kamera taraması eklenirse aynı yol kullanılır. */
-export async function fetchProductByBarcode(barcode: string): Promise<OffProduct | null> {
-  const data = (await offFetch(
-    `${PRODUCT_URL}/${encodeURIComponent(barcode)}.json?fields=${FIELDS}`,
-  )) as { status?: number; product?: RawProduct };
-
-  if (data.status !== 1 || !data.product) return null;
-  return normalizeProduct(data.product);
-}
