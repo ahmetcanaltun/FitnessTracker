@@ -51,9 +51,19 @@ docker compose exec -T db pg_dump -U fitness fitness > yedek.sql
 Kayıt formu yok — hesaplar yönetici tarafından **Profil → Kullanıcı Yönetimi**
 ekranından eklenir (`plan.md` §13).
 
-Sekmeler: **Hareketler** (egzersiz ara, kg/set/tekrar kaydet, ilerleme grafiği),
-**Beslenme** (öğün bazlı besin, kalori/makro halkası, su sayacı), **İlerleme**
-(hareket bazlı kişisel rekorlar), **Profil** (hedefler, yönetim, çıkış).
+Sekmeler: **Hareketler** (egzersiz ara, kg/set/tekrar kaydet, ilerleme grafiği,
+rekor vurgusu), **Rutinler** (antrenman programı oluştur, sırayla uygula),
+**Beslenme** (öğün bazlı besin, kalori/makro halkası, su sayacı, günlük/haftalık
+geçmiş grafiği), **İlerleme** (hareket bazlı kişisel rekorlar), **Profil**
+(hedefler, yönetim, çıkış).
+
+Yerel besin listesinde bulunamayan paketli ürünler için **Open Food Facts**
+üzerinden canlı arama yapılabilir; seçilen ürün yerel tabloya aktarılır.
+
+**Ana ekrana eklenebilir (PWA).** Service worker kasıtlı olarak dar kapsamlı:
+yalnızca statik varlıklar ve çevrimdışı bilgi sayfası saklanır. Sayfa içeriği
+ve veriler cache'lenmez — hepsi girişe bağlı kişisel veri olduğu için ortak
+kullanılan bir telefonda çıkış sonrası görünmemeli.
 
 ## Komutlar
 
@@ -63,6 +73,7 @@ Sekmeler: **Hareketler** (egzersiz ara, kg/set/tekrar kaydet, ilerleme grafiği)
 | `npm run lint` / `typecheck` | ESLint / tsc |
 | `npm run db:migrate` / `db:deploy` / `db:studio` | Prisma |
 | `npm run seed:exercises` / `seed:foods` / `seed:admin` | Veri yükleme |
+| `npm run icons` | PWA ikonlarını yeniden üret |
 
 ## Veri kaynakları
 

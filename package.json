@@ -14,7 +14,8 @@
     "db:generate": "prisma generate",
     "seed:exercises": "tsx scripts/sync-exercises.ts",
     "seed:foods": "tsx scripts/seed-food-items.ts",
-    "seed:admin": "tsx scripts/create-admin.ts"
+    "seed:admin": "tsx scripts/create-admin.ts",
+    "icons": "tsx scripts/generate-icons.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",
