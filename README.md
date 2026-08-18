@@ -1,6 +1,7 @@
 # Fitness Track
 
-Self-hosted workout and nutrition tracker for personal and family use. Turkish UI.
+Self-hosted workout and nutrition tracker. Deploy your own instance — admin
+invites users, no public sign-up. Turkish UI.
 
 Next.js 16 · Prisma 7 · PostgreSQL 16 · Auth.js v5 · Tailwind v4
 
@@ -67,5 +68,9 @@ navigations always hit the network and no page content is written to disk.
 
 Exercises from [wger](https://wger.de) (CC-BY-SA), packaged products from
 [Open Food Facts](https://openfoodfacts.org) (ODbL), staple food values
-referenced from USDA FoodData Central. Attribution is required if this is ever
-made public.
+referenced from USDA FoodData Central.
+
+## License
+
+Code is [MIT-licensed](LICENSE). Exercise and food data keep their own
+upstream licenses, noted above.
