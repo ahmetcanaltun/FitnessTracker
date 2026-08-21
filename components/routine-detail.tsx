@@ -8,6 +8,7 @@ import {
   ArrowUp,
   Check,
   ChevronRight,
+  Play,
   Plus,
   Search,
   Trash2,
@@ -36,11 +37,13 @@ export type RoutineItemView = {
 
 export function RoutineDetail({
   routineId,
+  startHref,
   name,
   notes,
   items,
 }: {
   routineId: string;
+  startHref?: string;
   name: string;
   notes: string | null;
   items: RoutineItemView[];
@@ -95,6 +98,12 @@ export function RoutineDetail({
       </div>
       {notes && <p className="text-sm text-muted mb-5">{notes}</p>}
       {!notes && <div className="mb-5" />}
+
+      {startHref && items.length > 0 && (
+        <Link href={startHref} className="save-btn w-full mb-5">
+          <Play size={16} /> Antrenmanı Başlat
+        </Link>
+      )}
 
       {error && (
         <p role="alert" className="text-sm mb-3" style={{ color: "var(--color-plate-red)" }}>
