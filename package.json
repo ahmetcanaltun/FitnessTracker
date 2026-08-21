@@ -16,7 +16,8 @@
     "seed:foods": "tsx scripts/seed-food-items.ts",
     "seed:fedb": "tsx scripts/sync-fedb.ts",
     "seed:admin": "tsx scripts/create-admin.ts",
-    "icons": "tsx scripts/generate-icons.ts"
+    "icons": "tsx scripts/generate-icons.ts",
+    "muscle:shapes": "tsx scripts/fetch-muscle-shapes.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",
