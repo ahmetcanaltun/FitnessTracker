@@ -45,12 +45,15 @@ export function WorkoutRunner({
   const [weight, setWeight] = useState(item?.targetWeightKg ?? item?.lastWeightKg ?? 20);
   const [reps, setReps] = useState(item?.targetReps ?? 8);
   const [sets, setSets] = useState(item?.targetSets ?? 3);
+  // Set set modunda her set kendi zorluğunu taşır: kayıttan sonra sıfırlanır.
+  const [rpe, setRpe] = useState<number | null>(null);
 
   function moveTo(next: number) {
     const target = items[next];
     setIndex(next);
     setError(null);
     setResting(false);
+    setRpe(null);
     if (target) {
       setWeight(target.targetWeightKg ?? target.lastWeightKg ?? 20);
       setReps(target.targetReps ?? 8);
@@ -68,6 +71,7 @@ export function WorkoutRunner({
         reps,
         sets: setCount,
         performedAt: todayISO(),
+        rpe,
       });
       if (!result.ok) {
         setError(result.error ?? "Kayıt eklenemedi.");
@@ -77,6 +81,8 @@ export function WorkoutRunner({
       if (advance) {
         moveTo(index + 1);
       } else {
+        // Sonraki set kendi zorluğuyla kaydedilsin
+        setRpe(null);
         setResting(true);
       }
     });
@@ -142,6 +148,28 @@ export function WorkoutRunner({
         <Stepper label="Tekrar" value={reps} step={1} min={1} onChange={setReps} />
         {mode === "tek" && (
           <Stepper label="Set" value={sets} step={1} min={1} onChange={setSets} />
+        )}
+        {mode === "set" && (
+          <div>
+            <p className="field-label">{upper("Zorluk (RPE)")}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[6, 7, 8, 9, 10].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  className="fit-chip"
+                  data-active={rpe === value}
+                  aria-pressed={rpe === value}
+                  onClick={() => setRpe(rpe === value ? null : value)}
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <p className="text-muted mt-1" style={{ fontSize: "11px" }}>
+              Her set için ayrı sorulur, isteğe bağlı. 6 = rahat, 10 = son tekrar zor bitti.
+            </p>
+          </div>
         )}
       </div>
 
