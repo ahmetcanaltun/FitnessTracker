@@ -14,6 +14,7 @@
     "db:generate": "prisma generate",
     "seed:exercises": "tsx scripts/sync-exercises.ts",
     "seed:foods": "tsx scripts/seed-food-items.ts",
+    "seed:fedb": "tsx scripts/sync-fedb.ts",
     "seed:admin": "tsx scripts/create-admin.ts",
     "icons": "tsx scripts/generate-icons.ts"
   },
