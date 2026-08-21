@@ -3,6 +3,9 @@ import { ChevronRight, ListChecks } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RoutineCreateForm } from "@/components/routine-create-form";
+import { MuscleMap } from "@/components/muscle-map";
+import { weeklyMuscleVolume } from "@/lib/muscle-map";
+import { upper } from "@/lib/design";
 
 export default async function RoutinesPage() {
   const user = await requireUser();
@@ -13,10 +16,27 @@ export default async function RoutinesPage() {
     include: {
       items: {
         orderBy: { position: "asc" },
-        include: { exercise: { select: { name: true } } },
+        include: {
+          exercise: {
+            select: { name: true, primaryMuscles: true, secondaryMuscles: true },
+          },
+        },
       },
     },
   });
+
+  // Haftalık toplam: her rutin atandığı gün sayısı kadar sayılır
+  const weekly = weeklyMuscleVolume(
+    routines.map((routine) => ({
+      weekdays: routine.weekdays,
+      items: routine.items.map((item) => ({
+        targetSets: item.targetSets,
+        primaryMuscles: item.exercise.primaryMuscles,
+        secondaryMuscles: item.exercise.secondaryMuscles,
+      })),
+    })),
+  );
+  const assigned = routines.filter((routine) => routine.weekdays.length > 0).length;
 
   return (
     <div className="px-5 pt-6 pb-28">
@@ -67,6 +87,18 @@ export default async function RoutinesPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {routines.length > 0 && (
+        <section className="mb-6">
+          <h2 className="font-display text-lg mb-1">{upper("Haftalık kas dağılımı")}</h2>
+          <p className="text-muted mb-3" style={{ fontSize: "12px" }}>
+            {assigned === 0
+              ? "Hiçbir rutine gün atanmamış — rutini açıp günleri seçince harita dolar."
+              : `${assigned} rutin haftaya dağıtılmış.`}
+          </p>
+          <MuscleMap volume={weekly} />
+        </section>
       )}
 
       <RoutineCreateForm />

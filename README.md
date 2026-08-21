@@ -74,3 +74,9 @@ referenced from USDA FoodData Central.
 
 Code is [MIT-licensed](LICENSE). Exercise and food data keep their own
 upstream licenses, noted above.
+
+## Veri ve görsel kaynakları
+
+- Hareket katalogu: [free-exercise-db](https://github.com/yuhonas/free-exercise-db) — Unlicense (kamu malı). Yalnızca JSON verisi kullanılıyor, görselleri kullanılmıyor.
+- Kas haritası çizimi: [body-muscles](https://github.com/vulovix/body-muscles) — Apache License 2.0, © vulovix.
+- Eski hareket kayıtları: [wger](https://wger.de) — CC-BY-SA.
