@@ -126,6 +126,8 @@ model ExerciseEntry {
   reps        Int
   sets        Int
   performedAt DateTime @map("performed_at") @db.Date
+  // Algılanan zorluk 1-10 (RPE). İsteğe bağlı: eski kayıtlarda null.
+  rpe         Int?
   notes       String?
   createdAt   DateTime @default(now()) @map("created_at")
 

@@ -12,6 +12,7 @@ const entrySchema = z.object({
   reps: z.number().int().min(1).max(999),
   sets: z.number().int().min(1).max(99),
   performedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  rpe: z.number().int().min(1).max(10).nullable().optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -26,7 +27,7 @@ export async function saveExerciseEntry(input: unknown): Promise<SaveEntryResult
   if (!parsed.success) {
     return { ok: false, error: "Girilen değerler geçersiz." };
   }
-  const { exerciseId, weightKg, reps, sets, performedAt, notes } = parsed.data;
+  const { exerciseId, weightKg, reps, sets, performedAt, notes, rpe } = parsed.data;
 
   const exercise = await prisma.exercise.findUnique({
     where: { id: exerciseId },
@@ -52,6 +53,7 @@ export async function saveExerciseEntry(input: unknown): Promise<SaveEntryResult
       reps,
       sets,
       performedAt: dateFromISO(performedAt),
+      rpe: rpe ?? null,
       notes: notes?.trim() || null,
     },
   });
