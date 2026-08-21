@@ -53,6 +53,15 @@ export function shortDateLabel(d: Date): string {
   return `${d.getUTCDate()} ${SHORT_MONTHS[d.getUTCMonth()]}`;
 }
 
+/**
+ * Bugünün hafta günü: 1=Pazartesi … 7=Pazar.
+ * Routine.weekdays bu numaralandırmayı kullanıyor; JS'in 0=Pazar'ı değil.
+ */
+export function todayWeekday(): number {
+  const day = dateFromISO(todayISO()).getUTCDay();
+  return day === 0 ? 7 : day;
+}
+
 /** Profil ekranı: "Şubat 2026" */
 export function monthYearLabel(d: Date): string {
   const months = [
