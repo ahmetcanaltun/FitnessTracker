@@ -22,6 +22,11 @@ enum MealType {
   atistirmalik
 }
 
+enum ExerciseSource {
+  wger
+  fedb
+}
+
 enum FoodSource {
   openfoodfacts
   usda
@@ -55,6 +60,8 @@ model Routine {
   userId    String   @map("user_id")
   name      String
   notes     String?
+  // 1=Pazartesi … 7=Pazar. Boş dizi: haftalık kas hesabına girmez.
+  weekdays  Int[]    @default([])
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -84,22 +91,29 @@ model RoutineItem {
 }
 
 model Exercise {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   name             String
-  nameEn           String?  @map("name_en")
+  nameEn           String?        @map("name_en")
+  // Vücut bölgesi (Göğüs/Sırt/Bacak…) — birincil kastan türetilir, filtre çipleri bunu kullanır
   category         String?
-  primaryMuscle    String?  @map("primary_muscle")
-  secondaryMuscles String[] @map("secondary_muscles")
+  // Antrenman türü (Kuvvet/Esneme/Pliometrik…) — kaynağın kendi kategorisi
+  kind             String?
+  // Kanonik kas slug'ları (lib/muscles.ts). Türkçe etiket saklanmaz: etiket
+  // değişince harita sessizce boşalmasın.
+  primaryMuscles   String[]       @map("primary_muscles")
+  secondaryMuscles String[]       @map("secondary_muscles")
   equipment        String?
-  imageUrl         String?  @map("image_url")
-  // wger kaynak referansı: sync script'i bu alanla upsert yapar
-  wgerId           Int?     @unique @map("wger_id")
-  createdAt        DateTime @default(now()) @map("created_at")
+  imageUrl         String?        @map("image_url")
+  // Katalog kaynağı. Ana katalog fedb; wger satırları geçmiş kayıtlar için durur.
+  source           ExerciseSource @default(wger)
+  externalId       String?        @map("external_id")
+  createdAt        DateTime       @default(now()) @map("created_at")
 
   entries      ExerciseEntry[]
   routineItems RoutineItem[]
 
-  @@index([primaryMuscle])
+  @@unique([source, externalId])
+  @@index([category])
   @@index([name])
   @@map("exercises")
 }
