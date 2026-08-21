@@ -36,3 +36,11 @@ export function ringColor(pct: number): string {
   return "#2F6FED";
 }
 
+
+/** Kas haritası: haftalık set eşdeğerine göre bölge rengi */
+export function muscleColor(sets: number): string {
+  if (sets >= 20) return "#E8412C";
+  if (sets >= 10) return "#3CAA5C";
+  if (sets > 0) return "#2F6FED";
+  return "#3A3B40";
+}
