@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { Flame, Minus, TrendingDown, TrendingUp, Trophy } from "lucide-react";
+import { Minus, TrendingDown, TrendingUp, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatNum, plateColor, upper } from "@/lib/design";
 import { relativeDayLabel } from "@/lib/dates";
 import { ExerciseSearch } from "@/components/exercise-search";
 import { Sparkline } from "@/components/sparkline";
-import { calculateStreak } from "@/lib/streak";
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -94,32 +93,15 @@ export default async function ExercisesPage({
     historyByExercise.set(entry.exerciseId, list);
   }
 
-  const allDates = await prisma.exerciseEntry.findMany({
-    where: { userId: user.id },
-    select: { performedAt: true },
-    distinct: ["performedAt"],
-    orderBy: { performedAt: "desc" },
-    take: 400,
-  });
-  const streak = calculateStreak(allDates.map((d) => d.performedAt));
-
   return (
     <>
       <div
         className="sticky top-0 z-10 px-5 pt-6 pb-4"
         style={{ background: "linear-gradient(to bottom, var(--color-bg) 75%, transparent)" }}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-sm text-muted">Merhaba,</p>
-            <h1 className="font-display text-3xl">{upper(user.name)}</h1>
-          </div>
-          <div className="flex items-center gap-1 px-3 py-2 rounded-full fit-input">
-            <Flame size={14} style={{ color: "var(--color-plate-red)" }} />
-            <span className="font-mono" style={{ fontSize: "12px" }}>
-              {streak} gün
-            </span>
-          </div>
+        <div className="mb-4">
+          <h1 className="font-display text-2xl mb-1">{upper("Hareketler")}</h1>
+          <p className="text-sm text-muted">Katalogda ara, kayıtlarını gör.</p>
         </div>
 
         <ExerciseSearch
