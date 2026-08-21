@@ -28,7 +28,8 @@ export default async function ExercisesPage({
   // Kas grubu chip'leri: katalogda gerçekten var olan kategoriler
   const categoryRows = await prisma.exercise.groupBy({
     by: ["category"],
-    where: { category: { not: null } },
+    // Yalnızca ana katalog: eski wger satırları aramada görünmez (bkz. lib/muscles.ts)
+    where: { source: "fedb", category: { not: null } },
     orderBy: { category: "asc" },
   });
   const categories = categoryRows
@@ -49,6 +50,7 @@ export default async function ExercisesPage({
   if (isFiltering) {
     exercises = await prisma.exercise.findMany({
       where: {
+        source: "fedb",
         ...(query
           ? {
               OR: [
@@ -68,7 +70,11 @@ export default async function ExercisesPage({
     exercises = loggedIds.map((id) => byId.get(id)).filter((e) => e !== undefined);
   } else {
     // Henüz hiç kayıt yok: katalogdan bir başlangıç listesi göster
-    exercises = await prisma.exercise.findMany({ orderBy: { name: "asc" }, take: 24 });
+    exercises = await prisma.exercise.findMany({
+      where: { source: "fedb" },
+      orderBy: { name: "asc" },
+      take: 24,
+    });
   }
 
   // Gösterilen hareketlerin geçmişi tek sorguda (sparkline + son ağırlık için)

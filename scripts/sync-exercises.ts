@@ -1,8 +1,10 @@
 /**
- * wger REST API'sinden egzersizleri çekip kendi `Exercise` tablomuza yazar
- * (plan.md §5). Uygulama çalışırken wger'e hiç bağlanmaz — bu script tek
- * seferlik / periyodik çalıştırılır ve `wgerId` üzerinden upsert yapar,
- * yani tekrar çalıştırmak güvenlidir.
+ * wger REST API'sinden egzersizleri çekip `Exercise` tablosuna yazar.
+ *
+ * NOT: Ana katalog artık free-exercise-db (`npm run seed:fedb`). Bu script
+ * yalnızca geçmiş kayıtları olan eski wger satırlarını güncel tutmak ve
+ * kaslarını kanonik slug'a taşımak için duruyor; yeni hareket aramaları
+ * fedb üzerinden yapılır. (source, externalId) ile upsert eder.
  *
  *   npm run seed:exercises
  *
@@ -18,6 +20,7 @@ import {
   WGER_LANG_TR,
   translate,
 } from "./wger-dictionary";
+import { WGER_MUSCLES, MUSCLE_CATEGORY, type MuscleKey } from "../lib/muscles";
 
 const API = "https://wger.de/api/v2/exerciseinfo/";
 const PAGE_SIZE = 100;
@@ -61,6 +64,17 @@ function pickImage(images: WgerImage[]): string | null {
   return (images.find((i) => i.is_main) ?? images[0]).image ?? null;
 }
 
+/** wger'in latince kas adlarını kanonik slug'a indirger. */
+function wgerSlugs(names: Array<{ name: string }> | undefined): MuscleKey[] {
+  const out = new Set<MuscleKey>();
+  for (const m of names ?? []) {
+    const tr = translate(MUSCLE_TR, m.name);
+    const slug = tr ? WGER_MUSCLES[tr] : undefined;
+    if (slug) out.add(slug);
+  }
+  return [...out];
+}
+
 async function main() {
   let url = `${API}?format=json&limit=${PAGE_SIZE}`;
   let seen = 0;
@@ -82,21 +96,27 @@ async function main() {
         continue;
       }
 
+      // Artık TÜM birincil kaslar saklanıyor: wger egzersizlerinin %26'sında
+      // birden fazla var (Dips -> göğüs + triseps).
+      const primary = wgerSlugs(item.muscles);
+      const secondary = wgerSlugs(item.muscles_secondary).filter((m) => !primary.includes(m));
+
       const data = {
         name,
         nameEn,
-        category: translate(CATEGORY_TR, item.category?.name),
-        primaryMuscle: translate(MUSCLE_TR, item.muscles?.[0]?.name),
-        secondaryMuscles: (item.muscles_secondary ?? [])
-          .map((m) => translate(MUSCLE_TR, m.name))
-          .filter((m): m is string => Boolean(m)),
+        category: primary[0]
+          ? MUSCLE_CATEGORY[primary[0]]
+          : translate(CATEGORY_TR, item.category?.name),
+        kind: "Kuvvet",
+        primaryMuscles: primary,
+        secondaryMuscles: secondary,
         equipment: translate(EQUIPMENT_TR, item.equipment?.[0]?.name),
         imageUrl: pickImage(item.images ?? []),
       };
 
       await prisma.exercise.upsert({
-        where: { wgerId: item.id },
-        create: { ...data, wgerId: item.id },
+        where: { source_externalId: { source: "wger" as const, externalId: String(item.id) } },
+        create: { ...data, source: "wger" as const, externalId: String(item.id) },
         update: data,
       });
       written++;
