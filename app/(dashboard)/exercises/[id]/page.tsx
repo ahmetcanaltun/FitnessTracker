@@ -38,6 +38,14 @@ export default async function ExerciseDetailPage({
   const entries = await prisma.exerciseEntry.findMany({
     where: { userId: user.id, exerciseId: id },
     orderBy: [{ performedAt: "asc" }, { createdAt: "asc" }],
+    select: {
+      id: true,
+      weightKg: true,
+      reps: true,
+      sets: true,
+      rpe: true,
+      performedAt: true,
+    },
   });
 
   const history = entries.map((e) => ({
@@ -45,6 +53,7 @@ export default async function ExerciseDetailPage({
     kg: Number(e.weightKg),
     reps: e.reps,
     sets: e.sets,
+    rpe: e.rpe,
     date: e.performedAt,
   }));
 
@@ -151,6 +160,7 @@ export default async function ExerciseDetailPage({
                     <span className="font-mono text-sm">{shortDateLabel(h.date)}</span>
                   </div>
                   <div className="flex items-center gap-3 font-mono text-sm text-muted">
+                    {h.rpe !== null && <span className="fit-tag">RPE {h.rpe}</span>}
                     <span>
                       {h.sets}x{h.reps}
                     </span>

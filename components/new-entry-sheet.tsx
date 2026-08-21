@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus, Trophy, X } from "lucide-react";
-import { formatNum } from "@/lib/design";
+import { formatNum, upper } from "@/lib/design";
 import { saveExerciseEntry } from "@/app/actions/exercise-entries";
 
 const QUICK_STEPS = [-5, -1.25, 1.25, 5, 10];
@@ -37,6 +37,7 @@ export function NewEntrySheet({
   const [sets, setSets] = useState(defaultSets);
   const [reps, setReps] = useState(defaultReps);
   const [performedAt, setPerformedAt] = useState(today);
+  const [rpe, setRpe] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [celebrating, setCelebrating] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -46,6 +47,7 @@ export function NewEntrySheet({
     setSets(defaultSets);
     setReps(defaultReps);
     setPerformedAt(today);
+    setRpe(null);
     setError(null);
     setOpen(true);
   }
@@ -63,6 +65,7 @@ export function NewEntrySheet({
         reps,
         sets,
         performedAt,
+        rpe,
       });
 
       if (!result.ok) {
@@ -70,6 +73,7 @@ export function NewEntrySheet({
         return;
       }
 
+      setRpe(null);
       setOpen(false);
       router.refresh();
 
@@ -175,6 +179,27 @@ export function NewEntrySheet({
                   </button>
                 </div>
               </div>
+            </div>
+
+            <div className="mb-4">
+              <p className="field-label">{upper("Zorluk (RPE)")}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[6, 7, 8, 9, 10].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className="fit-chip"
+                    data-active={rpe === value}
+                    aria-pressed={rpe === value}
+                    onClick={() => setRpe(rpe === value ? null : value)}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <p className="text-muted mt-1" style={{ fontSize: "11px" }}>
+                İsteğe bağlı. 6 = rahat, 10 = son tekrar zor bitti.
+              </p>
             </div>
 
             <div className="mb-6">
