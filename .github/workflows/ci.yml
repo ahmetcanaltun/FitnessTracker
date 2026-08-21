@@ -27,3 +27,7 @@ jobs:
       - run: npm run lint
 
       - run: npm run typecheck
+
+      # Saf fonksiyon doğrulama koşuları (kas kuralları, kas haritası,
+      # antrenman geçmişi) — veritabanı gerektirmez
+      - run: npm run verify

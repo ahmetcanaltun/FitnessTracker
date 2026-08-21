@@ -16,6 +16,7 @@
     "seed:foods": "tsx scripts/seed-food-items.ts",
     "seed:fedb": "tsx scripts/sync-fedb.ts",
     "seed:admin": "tsx scripts/create-admin.ts",
+    "verify": "tsx scripts/verify-muscle-rules.ts && tsx scripts/verify-muscle-map.ts && tsx scripts/verify-workout-history.ts",
     "icons": "tsx scripts/generate-icons.ts",
     "muscle:shapes": "tsx scripts/fetch-muscle-shapes.ts"
   },

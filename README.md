@@ -7,8 +7,9 @@ Next.js 16 · Prisma 7 · PostgreSQL 16 · Auth.js v5 · Tailwind v4
 
 ## What it does
 
-- **Workouts** — search a catalog of ~850 exercises, log weight, sets and reps,
-  see a progress chart per exercise and personal-record highlighting.
+- **Workouts** — search a catalog of ~870 exercises, log weight, sets, reps and
+  optional RPE; run a routine exercise-by-exercise with a rest timer; see a
+  progress chart per exercise and personal-record highlighting.
 - **Routines** — build a workout program, order the movements, and jump straight
   into logging with the targets prefilled.
 - **Nutrition** — log food per meal, track calories and macros against a goal,
@@ -29,15 +30,18 @@ npm install
 npx prisma generate           # Prisma Client is gitignored, generate it first
 npm run db:migrate
 
-npm run seed:exercises        # ~850 exercises from wger
+npm run seed:fedb             # ~870 exercises from free-exercise-db (main catalog)
+npm run seed:exercises        # legacy wger rows only — run AFTER seed:fedb
 npm run seed:foods            # 77 staple foods
 npm run seed:admin            # first admin account, from ADMIN_* in .env
 
 npm run dev                   # http://localhost:3000
 ```
 
-All three seed scripts are idempotent — rerunning them updates rather than
-duplicates.
+All seed scripts are idempotent — rerunning them updates rather than
+duplicates. Order matters for the two exercise seeds: `seed:fedb` writes the
+searchable catalog; `seed:exercises` only refreshes legacy wger rows (kept for
+existing logs) and migrates their muscles to canonical slugs.
 
 ## Commands
 
@@ -46,7 +50,8 @@ duplicates.
 | `npm run dev` / `build` / `start` | Next.js |
 | `npm run lint` / `typecheck` | ESLint / tsc |
 | `npm run db:migrate` / `db:deploy` / `db:studio` | Prisma |
-| `npm run seed:exercises` / `seed:foods` / `seed:admin` | Load data |
+| `npm run seed:fedb` / `seed:exercises` / `seed:foods` / `seed:admin` | Load data |
+| `npm run verify` | Pure-function verification runs (no db) |
 | `npm run icons` | Regenerate PWA icons |
 
 ## Notes
