@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, ChevronRight, SkipForward } from "lucide-react";
 import { saveExerciseEntry } from "@/app/actions/exercise-entries";
 import { RestTimer } from "@/components/rest-timer";
+import { PlateBadge } from "@/components/plate-badge";
 import { todayISO } from "@/lib/dates";
 import { formatNum, upper } from "@/lib/design";
 
@@ -15,6 +16,14 @@ export type WorkoutItem = {
   targetReps: number | null;
   targetWeightKg: number | null;
   lastWeightKg: number | null;
+};
+
+/** Kaydedilmiş bir giriş. "Tek kayıt" modunda sets > 1 olabilir. */
+type LoggedSet = {
+  sets: number;
+  weight: number;
+  reps: number;
+  rpe: number | null;
 };
 
 type Mode = "tek" | "set";
@@ -35,8 +44,8 @@ export function WorkoutRunner({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [resting, setResting] = useState(false);
-  // Hareket başına kaydedilen set sayısı — özet ekranı bunu kullanır
-  const [done, setDone] = useState<Record<string, number>>({});
+  // Hareket başına kaydedilen setler — hem set kaydı listesi hem özet bunu kullanır
+  const [log, setLog] = useState<Record<string, LoggedSet[]>>({});
 
   const item = items[index];
   const finished = index >= items.length;
@@ -77,7 +86,13 @@ export function WorkoutRunner({
         setError(result.error ?? "Kayıt eklenemedi.");
         return;
       }
-      setDone((prev) => ({ ...prev, [item.exerciseId]: (prev[item.exerciseId] ?? 0) + setCount }));
+      setLog((prev) => ({
+        ...prev,
+        [item.exerciseId]: [
+          ...(prev[item.exerciseId] ?? []),
+          { sets: setCount, weight, reps, rpe },
+        ],
+      }));
       if (advance) {
         moveTo(index + 1);
       } else {
@@ -89,8 +104,9 @@ export function WorkoutRunner({
   }
 
   if (finished) {
-    const toplamSet = Object.values(done).reduce((a, b) => a + b, 0);
-    const hareket = Object.keys(done).length;
+    const entries = Object.values(log).flat();
+    const toplamSet = entries.reduce((sum, entry) => sum + entry.sets, 0);
+    const hareket = Object.keys(log).length;
     return (
       <div className="fit-card card-enter p-6 text-center">
         <p className="font-display" style={{ fontSize: "34px", lineHeight: 1.05 }}>
@@ -106,20 +122,38 @@ export function WorkoutRunner({
     );
   }
 
+  const doneSets = log[item.exerciseId] ?? [];
+
   return (
     <div className="flex flex-col gap-4">
+      <div
+        className="workout-rail"
+        role="img"
+        aria-label={`${index + 1} / ${items.length} hareket`}
+      >
+        {items.map((railItem, i) => (
+          <span
+            key={railItem.exerciseId}
+            className="rail-seg"
+            data-state={i < index ? "done" : i === index ? "current" : "todo"}
+          />
+        ))}
+      </div>
+
       <div>
-        <p className="field-label">
-          {upper(routineName)} · {index + 1}/{items.length}
-        </p>
+        <p className="field-label">{upper(routineName)}</p>
         <h1 className="font-display" style={{ fontSize: "30px", lineHeight: 1.05 }}>
           {upper(item.name)}
         </h1>
-        {item.lastWeightKg !== null && (
-          <p className="text-muted" style={{ fontSize: "12px" }}>
-            Son kayıt: {formatNum(item.lastWeightKg)} kg
-          </p>
-        )}
+        {/* Disk zaten hedefle (yoksa son kayıtla) dolu geliyor. Bu satır
+            yalnızca ikisi farklıyken bilgi katar — yoksa aynı sayıyı tekrarlar. */}
+        {item.lastWeightKg !== null &&
+          item.targetWeightKg !== null &&
+          item.targetWeightKg !== item.lastWeightKg && (
+            <p className="text-muted" style={{ fontSize: "12px" }}>
+              Son kayıt: {formatNum(item.lastWeightKg)} kg
+            </p>
+          )}
       </div>
 
       <div className="flex gap-2">
@@ -144,7 +178,30 @@ export function WorkoutRunner({
       </div>
 
       <div className="fit-card p-4 flex flex-col gap-4">
-        <Stepper label="Ağırlık (kg)" value={weight} step={2.5} min={0} onChange={setWeight} />
+        {/* Ağırlık kontrolü diskin kendisi: renk ağırlıkla değişir (plateColor) */}
+        <div>
+          <p className="field-label">{upper("Ağırlık (kg)")}</p>
+          <div className="weight-row flex items-center justify-between gap-2">
+            <button
+              type="button"
+              className="stepper-btn-lg"
+              aria-label="Ağırlık azalt"
+              onClick={() => setWeight((w) => Math.max(0, Number((w - 2.5).toFixed(2))))}
+            >
+              −
+            </button>
+            <PlateBadge kg={weight} size="lg" />
+            <button
+              type="button"
+              className="stepper-btn-lg"
+              aria-label="Ağırlık artır"
+              onClick={() => setWeight((w) => Number((w + 2.5).toFixed(2)))}
+            >
+              +
+            </button>
+          </div>
+        </div>
+
         <Stepper label="Tekrar" value={reps} step={1} min={1} onChange={setReps} />
         {mode === "tek" && (
           <Stepper label="Set" value={sets} step={1} min={1} onChange={setSets} />
@@ -152,7 +209,7 @@ export function WorkoutRunner({
         {mode === "set" && (
           <div>
             <p className="field-label">{upper("Zorluk (RPE)")}</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="rpe-row flex flex-wrap gap-2">
               {[6, 7, 8, 9, 10].map((value) => (
                 <button
                   key={value}
@@ -173,12 +230,21 @@ export function WorkoutRunner({
         )}
       </div>
 
-      {resting && (
-        <RestTimer
-          seconds={REST_SECONDS}
-          onDone={() => setResting(false)}
-          onDismiss={() => setResting(false)}
-        />
+      {/* Bu harekette kaydedilenler — ekran "ne yaptım" sorusuna cevap versin */}
+      {doneSets.length > 0 && (
+        <div className="fit-card p-4 pt-3">
+          <p className="field-label">{upper("Kaydedilen")}</p>
+          {doneSets.map((entry, i) => (
+            <div key={i} className="set-row">
+              <span className="text-muted">{i + 1}.</span>
+              <span className="flex-1">
+                {formatNum(entry.weight)} kg × {entry.reps}
+                {entry.sets > 1 ? ` · ${entry.sets} set` : ""}
+              </span>
+              {entry.rpe !== null && <span className="fit-tag">RPE {entry.rpe}</span>}
+            </div>
+          ))}
+        </div>
       )}
 
       {error && (
@@ -195,11 +261,10 @@ export function WorkoutRunner({
               onClick={() => save(1, false)}
             >
               <Check size={16} /> Seti kaydet
-              {done[item.exerciseId] ? ` (${done[item.exerciseId]})` : ""}
             </button>
             <button
               type="button"
-              className="mini-btn"
+              className="stepper-btn-lg"
               disabled={pending}
               aria-label="Sonraki harekete geç"
               onClick={() => moveTo(index + 1)}
@@ -219,7 +284,7 @@ export function WorkoutRunner({
         )}
         <button
           type="button"
-          className="mini-btn"
+          className="stepper-btn-lg"
           disabled={pending}
           aria-label="Bu hareketi atla"
           onClick={() => moveTo(index + 1)}
@@ -227,6 +292,19 @@ export function WorkoutRunner({
           <SkipForward size={16} />
         </button>
       </div>
+
+      {/* Sabit sayaç butonları örtmesin: sayfa o kadar aşağı kaydırılabilsin */}
+      {resting && <div aria-hidden style={{ height: "96px" }} />}
+
+      {resting && (
+        <div className="rest-dock card-enter">
+          <RestTimer
+            seconds={REST_SECONDS}
+            onDone={() => setResting(false)}
+            onDismiss={() => setResting(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

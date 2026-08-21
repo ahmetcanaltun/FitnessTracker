@@ -139,6 +139,91 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
+  /* Antrenman rayı: rutindeki hareket sırası — biten / şu anki / sıradaki.
+     Rutin gerçekten sıralı bir dizi olduğu için segment bilgi taşır. */
+  .workout-rail {
+    display: flex;
+    gap: 4px;
+  }
+
+  .rail-seg {
+    flex: 1;
+    height: 4px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.3s;
+  }
+
+  .rail-seg[data-state="done"] {
+    background: var(--color-plate-green);
+  }
+
+  .rail-seg[data-state="current"] {
+    background: var(--color-plate-red);
+  }
+
+  /* Antrenman ekranı kontrolleri: salonda tek elle kullanılır, 44px dokunma
+     hedefi (dar telefonlarda satır matematiği buna göre kuruldu). */
+  .stepper-btn-lg {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-hairline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink);
+    font-size: 22px;
+    transition: transform 0.15s;
+  }
+
+  .stepper-btn-lg:active {
+    transform: scale(0.9);
+  }
+
+  /* Ağırlık satırı: 44 + 128 + 44 + boşluklar = 232px, 320px'lik ekranda
+     kartın içine (248px) sığar. Disk burada egzersiz detayındakinden küçük;
+     .plate-badge-lg'nin kendisine dokunulmaz — beslenme halkası 140px'e bağlı. */
+  .weight-row .plate-badge-lg {
+    width: 128px;
+    height: 128px;
+  }
+
+  /* RPE çipleri set arası, terli elle basılıyor: liste filtresinden büyük */
+  .rpe-row .fit-chip {
+    min-width: 48px;
+    min-height: 44px;
+    font-size: 15px;
+    font-family: var(--font-mono);
+  }
+
+  /* Kaydedilmiş tek setin satırı */
+  .set-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid var(--color-hairline);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  /* Dinlenme sayacı alt menünün üstüne sabitlenir: sayaç açılıp kapanınca
+     kaydet butonu yerinden oynamasın. */
+  .rest-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: calc(100% - 40px);
+    max-width: 344px;
+    bottom: calc(84px + env(safe-area-inset-bottom));
+    z-index: 20;
+  }
+
   .stepper-btn {
     width: 40px;
     height: 40px;
