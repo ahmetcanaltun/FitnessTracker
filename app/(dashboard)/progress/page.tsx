@@ -85,22 +85,30 @@ export default async function ProgressPage() {
 
   return (
     <div className="px-5 pt-6 pb-28">
-      <h1 className="font-display text-2xl mb-1">İLERLEME</h1>
-      <p className="text-sm mb-5 text-muted">Tüm hareketlerdeki rekorların</p>
+      <h1 className="page-title">İLERLEME</h1>
+      <p className="page-sub mb-5">Haftalık dağılımın, son antrenmanların ve rekorların</p>
 
-      <h2 className="font-display text-lg mb-2">{upper("Haftalık kas dağılımı")}</h2>
+      <h2 className="section-title mb-2">{upper("Haftalık kas dağılımı")}</h2>
       <div className="mb-6">
         <MuscleMap volume={weekly} />
       </div>
 
-      <h2 className="font-display text-lg mb-2">{upper("Son antrenmanlar")}</h2>
+      <h2 className="section-title mb-2">{upper("Son antrenmanlar")}</h2>
       <div className="mb-6">
         <WorkoutHistoryList days={days} />
       </div>
 
+      <h2 className="section-title mb-2">{upper("Rekorlar")}</h2>
       {records.length === 0 ? (
-        <div className="fit-card p-6 text-center text-sm text-muted">
-          Henüz kaydın yok. İlk ağırlığını girdiğinde rekorların burada birikmeye başlayacak.
+        <div className="fit-card p-6 text-center text-small text-muted">
+          <p>Henüz kaydın yok. İlk ağırlığını girdiğinde rekorların burada birikir.</p>
+          <Link
+            href="/exercises"
+            className="inline-block mt-3"
+            style={{ color: "var(--color-plate-blue)" }}
+          >
+            Hareket seç
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">

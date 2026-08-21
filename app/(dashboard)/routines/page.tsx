@@ -38,10 +38,8 @@ export default async function RoutinesPage() {
 
   return (
     <div className="px-5 pt-6 pb-28">
-      <h1 className="font-display text-2xl mb-1">RUTİNLER</h1>
-      <p className="text-sm mb-5 text-muted">
-        Sık yaptığın antrenmanları kaydet, sırayla uygula.
-      </p>
+      <h1 className="page-title">RUTİNLER</h1>
+      <p className="page-sub mb-5">Sık yaptığın antrenmanları kaydet, sırayla uygula.</p>
 
       {routines.length === 0 ? (
         <div className="fit-card p-6 text-center text-sm text-muted mb-4">

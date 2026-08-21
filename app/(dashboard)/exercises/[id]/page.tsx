@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, Trophy } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatNum, plateColor, upper } from "@/lib/design";
+import { formatNum, plateColor, upperName } from "@/lib/design";
 import { relativeDayLabel, shortDateLabel, todayISO } from "@/lib/dates";
 import { CountUp } from "@/components/count-up";
 import { NewEntrySheet } from "@/components/new-entry-sheet";
@@ -96,9 +96,7 @@ export default async function ExerciseDetailPage({
           </div>
         )}
 
-        <h2 className="font-display mt-4" style={{ fontSize: "26px" }}>
-          {upper(exercise.name)}
-        </h2>
+        <h2 className="page-title mt-4">{upperName(exercise.name)}</h2>
         <p className="text-sm mt-1 text-muted">
           {[exercise.category, exercise.equipment].filter(Boolean).join(" · ")}
         </p>
@@ -129,7 +127,7 @@ export default async function ExerciseDetailPage({
 
       {history.length > 0 && (
         <>
-          <h3 className="font-semibold mb-3">Son Kayıtlar</h3>
+          <h3 className="section-title mb-3">SON KAYITLAR</h3>
           <div className="flex flex-col gap-2">
             {[...history].reverse().slice(0, 8).map((h) => {
               // Rekora eşit kayıtlar altın çerçeveyle işaretlenir

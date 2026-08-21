@@ -69,8 +69,8 @@ export default async function NutritionHistoryPage({
         <span className="text-sm">Beslenme</span>
       </Link>
 
-      <h1 className="font-display text-2xl mb-1">GEÇMİŞ</h1>
-      <p className="text-sm mb-5 text-muted">
+      <h1 className="page-title">GEÇMİŞ</h1>
+      <p className="page-sub mb-5">
         {mode === "haftalik"
           ? `Son ${WEEKLY_WEEKS} hafta — günlük ortalama`
           : `Son ${DAILY_DAYS} gün`}

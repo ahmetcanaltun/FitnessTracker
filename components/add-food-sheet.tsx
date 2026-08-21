@@ -116,7 +116,6 @@ export function AddFoodSheet({
       <div
         className="sheet-panel"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: "82vh", overflowY: "auto" }}
       >
         <div className="sheet-handle" />
         <div className="flex items-center justify-between mb-4">

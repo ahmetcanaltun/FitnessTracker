@@ -100,8 +100,8 @@ export default async function ExercisesPage({
         style={{ background: "linear-gradient(to bottom, var(--color-bg) 75%, transparent)" }}
       >
         <div className="mb-4">
-          <h1 className="font-display text-2xl mb-1">{upper("Hareketler")}</h1>
-          <p className="text-sm text-muted">Katalogda ara, kayıtlarını gör.</p>
+          <h1 className="page-title">{upper("Hareketler")}</h1>
+          <p className="page-sub">Katalogda ara, kayıtlarını gör.</p>
         </div>
 
         <ExerciseSearch
@@ -182,12 +182,12 @@ export default async function ExercisesPage({
                   ) : (
                     exercise.category && <span className="fit-tag">{exercise.category}</span>
                   )}
-                  <span className="font-mono text-muted" style={{ fontSize: "11px" }}>
+                  <span className="font-mono text-muted text-caption truncate">
                     {last ? relativeDayLabel(last.date) : (exercise.equipment ?? "")}
                   </span>
                   {/* Güncel ağırlık rekorun altındaysa hedefi göster */}
                   {last && pr > last.kg && (
-                    <span className="font-mono text-muted" style={{ fontSize: "11px" }}>
+                    <span className="font-mono text-muted text-caption whitespace-nowrap">
                       · rekor {formatNum(pr)}
                     </span>
                   )}

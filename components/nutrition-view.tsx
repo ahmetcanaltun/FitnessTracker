@@ -92,8 +92,8 @@ export function NutritionView({
     <div className="px-5 pt-6 pb-28">
       <div className="flex items-start justify-between mb-5">
         <div>
-          <p className="text-sm text-muted">Bugün</p>
-          <h1 className="font-display text-2xl">BESLENME</h1>
+          <p className="field-label">BUGÜN</p>
+          <h1 className="page-title">BESLENME</h1>
         </div>
         <Link
           href="/nutrition/history"
@@ -255,7 +255,8 @@ export function NutritionView({
                     <button
                       onClick={() => removeEntry(entry.id)}
                       aria-label={`${entry.name} kaydını sil`}
-                      style={{ color: "var(--color-muted)", lineHeight: 0 }}
+                      className="tap"
+                      style={{ color: "var(--color-muted)" }}
                     >
                       <Trash2 size={15} />
                     </button>

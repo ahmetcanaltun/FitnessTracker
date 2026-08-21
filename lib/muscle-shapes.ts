@@ -3,7 +3,7 @@
 // Kaynak: https://github.com/vulovix/body-muscles (Apache License 2.0)
 // Copyright vulovix. Apache-2.0 şartları gereği bu bildirim korunmalıdır.
 
-export const SHAPE_VIEWBOX = "-6.08 -26.34 74.09 115.68";
+export const SHAPE_VIEWBOX = "-1.5 -1.5 71.6 95.6";
 
 export type MuscleShape = { id: string; view: "front" | "back"; d: string };
 

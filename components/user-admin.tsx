@@ -89,8 +89,8 @@ export function UserAdmin({
                 <button
                   onClick={() => setConfirmId(user.id)}
                   aria-label={`${user.name} kullanıcısını sil`}
-                  className="shrink-0"
-                  style={{ color: "var(--color-muted)", lineHeight: 0 }}
+                  className="tap shrink-0"
+                  style={{ color: "var(--color-muted)" }}
                 >
                   <Trash2 size={16} />
                 </button>

@@ -15,9 +15,11 @@ const FILES = [
   { url: `${BASE}/muscles.back.ts`, view: "back" as const },
 ];
 
-// Kütüphane ön ve arka figürü TEK koordinat uzayında yan yana tanımlıyor;
-// bu viewBox ikisini birden çerçeveler.
-const VIEWBOX = "-6.08 -26.34 74.09 115.68";
+// Kütüphane ön ve arka figürü TEK koordinat uzayında yan yana tanımlıyor.
+// Kutu, path verisinin ölçülen gerçek sınırlarından (x 0..68.6, y 0..92.6)
+// 1.5 birim payla türetildi — kütüphanenin kendi önerdiği kutu üstte %23
+// boşluk bırakıyor, altta ayakları kırpıyordu.
+const VIEWBOX = "-1.5 -1.5 71.6 95.6";
 
 type Shape = { id: string; view: "front" | "back"; d: string };
 

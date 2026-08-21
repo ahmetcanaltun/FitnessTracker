@@ -7,7 +7,6 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
-  ChevronRight,
   Play,
   Plus,
   Search,
@@ -66,7 +65,7 @@ export function RoutineDetail({
   return (
     <>
       <div className="flex items-start justify-between gap-3 mb-1">
-        <h1 className="font-display text-2xl">{upper(name)}</h1>
+        <h1 className="page-title">{upper(name)}</h1>
         {confirmDelete ? (
           <div className="flex items-center gap-2 shrink-0">
             <button
@@ -89,14 +88,14 @@ export function RoutineDetail({
           <button
             onClick={() => setConfirmDelete(true)}
             aria-label="Rutini sil"
-            className="shrink-0 mt-1"
-            style={{ color: "var(--color-muted)", lineHeight: 0 }}
+            className="tap shrink-0"
+            style={{ color: "var(--color-muted)" }}
           >
             <Trash2 size={16} />
           </button>
         )}
       </div>
-      {notes && <p className="text-sm text-muted mb-5">{notes}</p>}
+      {notes && <p className="page-sub mb-5">{notes}</p>}
       {!notes && <div className="mb-5" />}
 
       {startHref && items.length > 0 && (
@@ -130,8 +129,8 @@ export function RoutineDetail({
               <div key={item.id} className="fit-card p-4">
                 <div className="flex items-center gap-3">
                   <span
-                    className="font-mono shrink-0 text-muted"
-                    style={{ fontSize: "12px", width: "18px" }}
+                    className="font-mono shrink-0 text-muted text-caption"
+                    style={{ width: "18px" }}
                   >
                     {index + 1}
                   </span>
@@ -140,10 +139,10 @@ export function RoutineDetail({
                     href={`/exercises/${item.exerciseId}?${params}`}
                     className="flex-1 min-w-0"
                   >
-                    <p className="font-semibold truncate" style={{ fontSize: "15px" }}>
+                    <p className="font-semibold truncate text-body">
                       {item.exerciseName}
                     </p>
-                    <p className="font-mono text-muted" style={{ fontSize: "11px" }}>
+                    <p className="font-mono text-muted text-caption">
                       {item.targetSets ?? "—"}x{item.targetReps ?? "—"}
                       {weight !== null && ` · ${formatNum(weight)} kg`}
                       {item.targetWeightKg === null && weight !== null && " (son kayıt)"}
@@ -155,7 +154,9 @@ export function RoutineDetail({
                       onClick={() => run(() => moveRoutineItem(item.id, "up"))}
                       disabled={index === 0}
                       aria-label="Yukarı taşı"
-                      style={{ color: "var(--color-muted)", opacity: index === 0 ? 0.3 : 1, lineHeight: 0, padding: "4px" }}
+                      className="tap"
+                      data-dense="true"
+                      style={{ color: "var(--color-muted)", opacity: index === 0 ? 0.3 : 1 }}
                     >
                       <ArrowUp size={14} />
                     </button>
@@ -163,11 +164,11 @@ export function RoutineDetail({
                       onClick={() => run(() => moveRoutineItem(item.id, "down"))}
                       disabled={index === items.length - 1}
                       aria-label="Aşağı taşı"
+                      className="tap"
+                      data-dense="true"
                       style={{
                         color: "var(--color-muted)",
                         opacity: index === items.length - 1 ? 0.3 : 1,
-                        lineHeight: 0,
-                        padding: "4px",
                       }}
                     >
                       <ArrowDown size={14} />
@@ -175,17 +176,12 @@ export function RoutineDetail({
                     <button
                       onClick={() => run(() => removeRoutineItem(item.id))}
                       aria-label={`${item.exerciseName} hareketini çıkar`}
-                      style={{ color: "var(--color-muted)", lineHeight: 0, padding: "4px" }}
+                      className="tap"
+                      data-dense="true"
+                      style={{ color: "var(--color-muted)" }}
                     >
                       <Trash2 size={14} />
                     </button>
-                    <Link
-                      href={`/exercises/${item.exerciseId}?${params}`}
-                      aria-label={`${item.exerciseName} kaydet`}
-                      style={{ color: "var(--color-plate-red)", lineHeight: 0, padding: "4px" }}
-                    >
-                      <ChevronRight size={18} />
-                    </Link>
                   </div>
                 </div>
               </div>
@@ -277,7 +273,6 @@ function AddItemSheet({
       <div
         className="sheet-panel"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: "82vh", overflowY: "auto" }}
       >
         <div className="sheet-handle" />
         <div className="flex items-center justify-between mb-4">

@@ -24,10 +24,8 @@ export default async function AdminUsersPage() {
         <span className="text-sm">Profil</span>
       </Link>
 
-      <h1 className="font-display text-2xl mb-1">KULLANICILAR</h1>
-      <p className="text-sm mb-5 text-muted">
-        Kayıt formu herkese açık değil; hesaplar buradan eklenir.
-      </p>
+      <h1 className="page-title">KULLANICILAR</h1>
+      <p className="page-sub mb-5">Kayıt formu herkese açık değil; hesaplar buradan eklenir.</p>
 
       <UserAdmin
         currentUserId={sessionUser.id}

@@ -12,6 +12,19 @@ export function upper(value: string): string {
   return value.toLocaleUpperCase("tr");
 }
 
+/**
+ * Katalog hareket adları için büyük harf.
+ *
+ * Katalog (free-exercise-db) İngilizce; `upper()` Türkçe kuralıyla
+ * "Arm Circles"ı "ARM CİRCLES" yapar. UI metinleri upper() ile kalır,
+ * hareket adları bu fonksiyondan geçer. (Eski wger satırlarının Türkçe
+ * adlarında "i" → "I" olabilir — İngilizce katalogda her adın bozulmasına
+ * tercih edildi.)
+ */
+export function upperName(value: string): string {
+  return value.toLocaleUpperCase("en");
+}
+
 /** Ondalık ayırıcı virgül, gereksiz sıfır yok: 92.5 -> "92,5", 100.0 -> "100" */
 export function formatNum(n: number): string {
   const r = Math.round(n * 10) / 10;

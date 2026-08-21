@@ -7,7 +7,7 @@ import { saveExerciseEntry } from "@/app/actions/exercise-entries";
 import { RestTimer } from "@/components/rest-timer";
 import { PlateBadge } from "@/components/plate-badge";
 import { todayISO } from "@/lib/dates";
-import { formatNum, upper } from "@/lib/design";
+import { formatNum, upper, upperName } from "@/lib/design";
 
 export type WorkoutItem = {
   exerciseId: string;
@@ -142,8 +142,8 @@ export function WorkoutRunner({
 
       <div>
         <p className="field-label">{upper(routineName)}</p>
-        <h1 className="font-display" style={{ fontSize: "30px", lineHeight: 1.05 }}>
-          {upper(item.name)}
+        <h1 className="font-display text-display-lg" style={{ lineHeight: 1.05 }}>
+          {upperName(item.name)}
         </h1>
         {/* Disk zaten hedefle (yoksa son kayıtla) dolu geliyor. Bu satır
             yalnızca ikisi farklıyken bilgi katar — yoksa aynı sayıyı tekrarlar. */}

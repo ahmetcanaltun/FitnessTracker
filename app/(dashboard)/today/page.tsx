@@ -63,17 +63,17 @@ export default async function TodayPage() {
 
   return (
     <div className="px-5 pt-6 pb-28">
-      <p className="text-muted" style={{ fontSize: "13px" }}>
-        Merhaba,
-      </p>
-      <div className="flex items-baseline gap-3 mb-5">
-        <h1 className="font-display text-3xl">{upper(user.name)}</h1>
-        {streak > 0 && <span className="fit-tag">{streak} gün seri</span>}
+      <div className="flex items-baseline justify-between gap-3 mb-5">
+        <div>
+          <p className="field-label">{upper("Merhaba")}</p>
+          <h1 className="page-title">{upper(user.name)}</h1>
+        </div>
+        {streak > 0 && <span className="fit-tag shrink-0">{streak} gün seri</span>}
       </div>
 
-      <h2 className="font-display text-lg mb-2">{upper("Bugünün antrenmanı")}</h2>
+      <h2 className="section-title mb-2">{upper("Bugünün antrenmanı")}</h2>
       {routines.length === 0 ? (
-        <div className="fit-card p-5 text-sm text-muted mb-6">
+        <div className="fit-card p-5 text-small text-muted mb-6">
           Bugüne atanmış rutin yok.{" "}
           <Link href="/routines" style={{ color: "var(--color-plate-blue)" }}>
             Rutinlerine git
@@ -84,10 +84,8 @@ export default async function TodayPage() {
         <div className="flex flex-col gap-2 mb-6">
           {routines.map((routine) => (
             <div key={routine.id} className="fit-card card-enter p-4">
-              <p className="font-semibold" style={{ fontSize: "15px" }}>
-                {routine.name}
-              </p>
-              <p className="text-muted mb-3" style={{ fontSize: "11px" }}>
+              <p className="section-title">{upper(routine.name)}</p>
+              <p className="text-muted text-caption mb-3">
                 {routine.items.length} hareket
               </p>
               <Link href={`/routines/${routine.id}/workout`} className="save-btn w-full">
@@ -98,13 +96,13 @@ export default async function TodayPage() {
         </div>
       )}
 
-      <h2 className="font-display text-lg mb-2">{upper("Beslenme")}</h2>
+      <h2 className="section-title mb-2">{upper("Beslenme")}</h2>
       <Link href="/nutrition" className="fit-card flex items-center gap-3 p-4 mb-6">
         <div className="flex-1">
-          <p className="font-display" style={{ fontSize: "28px", lineHeight: 1 }}>
+          <p className="font-display text-display-md" style={{ lineHeight: 1 }}>
             {formatNum(kcalLeft)}
           </p>
-          <p className="text-muted" style={{ fontSize: "11px" }}>
+          <p className="text-muted text-caption">
             kcal kaldı · hedef {formatNum(kcalGoal)}
           </p>
         </div>
@@ -113,20 +111,20 @@ export default async function TodayPage() {
         </span>
       </Link>
 
-      <h2 className="font-display text-lg mb-2">{upper("Son antrenman")}</h2>
+      <h2 className="section-title mb-2">{upper("Son antrenman")}</h2>
       {lastWorkout === null ? (
-        <div className="fit-card p-5 text-sm text-muted">Henüz antrenman kaydın yok.</div>
+        <div className="fit-card p-5 text-small text-muted">Henüz antrenman kaydın yok.</div>
       ) : (
         <Link href="/progress" className="fit-card flex items-center gap-3 p-4">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold" style={{ fontSize: "14px" }}>
+            <p className="font-semibold text-small">
               {relativeDayLabel(dateFromISO(lastWorkout.date))}
             </p>
-            <p className="text-muted truncate" style={{ fontSize: "11px" }}>
+            <p className="text-muted truncate text-caption">
               {lastWorkout.exerciseNames.join(" · ")}
             </p>
           </div>
-          <p className="font-display" style={{ fontSize: "20px" }}>
+          <p className="font-display text-display-sm">
             {lastWorkout.totalSets}
           </p>
         </Link>
