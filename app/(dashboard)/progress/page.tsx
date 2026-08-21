@@ -3,6 +3,8 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PlateBadge } from "@/components/plate-badge";
 import { WorkoutHistoryList } from "@/components/workout-history-list";
+import { MuscleMap } from "@/components/muscle-map";
+import { weeklyMuscleVolume } from "@/lib/muscle-map";
 import { groupWorkoutDays } from "@/lib/workout-history";
 import { toISODate } from "@/lib/dates";
 import { upper } from "@/lib/design";
@@ -39,6 +41,28 @@ export default async function ProgressPage() {
     },
   });
 
+  const routines = await prisma.routine.findMany({
+    where: { userId: user.id },
+    include: {
+      items: {
+        include: {
+          exercise: { select: { primaryMuscles: true, secondaryMuscles: true } },
+        },
+      },
+    },
+  });
+
+  const weekly = weeklyMuscleVolume(
+    routines.map((routine) => ({
+      weekdays: routine.weekdays,
+      items: routine.items.map((item) => ({
+        targetSets: item.targetSets,
+        primaryMuscles: item.exercise.primaryMuscles,
+        secondaryMuscles: item.exercise.secondaryMuscles,
+      })),
+    })),
+  );
+
   const days = groupWorkoutDays(
     recent.map((entry) => ({
       performedAt: toISODate(entry.performedAt),
@@ -63,6 +87,11 @@ export default async function ProgressPage() {
     <div className="px-5 pt-6 pb-28">
       <h1 className="font-display text-2xl mb-1">İLERLEME</h1>
       <p className="text-sm mb-5 text-muted">Tüm hareketlerdeki rekorların</p>
+
+      <h2 className="font-display text-lg mb-2">{upper("Haftalık kas dağılımı")}</h2>
+      <div className="mb-6">
+        <MuscleMap volume={weekly} />
+      </div>
 
       <h2 className="font-display text-lg mb-2">{upper("Son antrenmanlar")}</h2>
       <div className="mb-6">
