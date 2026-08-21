@@ -2,6 +2,10 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PlateBadge } from "@/components/plate-badge";
+import { WorkoutHistoryList } from "@/components/workout-history-list";
+import { groupWorkoutDays } from "@/lib/workout-history";
+import { toISODate } from "@/lib/dates";
+import { upper } from "@/lib/design";
 
 export default async function ProgressPage() {
   const user = await requireUser();
@@ -22,6 +26,29 @@ export default async function ProgressPage() {
 
   const byId = new Map(exercises.map((e) => [e.id, e]));
 
+  const recent = await prisma.exerciseEntry.findMany({
+    where: { userId: user.id },
+    orderBy: [{ performedAt: "desc" }, { createdAt: "desc" }],
+    take: 200,
+    select: {
+      performedAt: true,
+      sets: true,
+      reps: true,
+      weightKg: true,
+      exercise: { select: { name: true } },
+    },
+  });
+
+  const days = groupWorkoutDays(
+    recent.map((entry) => ({
+      performedAt: toISODate(entry.performedAt),
+      exerciseName: entry.exercise.name,
+      sets: entry.sets,
+      reps: entry.reps,
+      weightKg: Number(entry.weightKg),
+    })),
+  ).slice(0, 10);
+
   const records = groups
     .map((group) => ({
       exercise: byId.get(group.exerciseId),
@@ -36,6 +63,11 @@ export default async function ProgressPage() {
     <div className="px-5 pt-6 pb-28">
       <h1 className="font-display text-2xl mb-1">İLERLEME</h1>
       <p className="text-sm mb-5 text-muted">Tüm hareketlerdeki rekorların</p>
+
+      <h2 className="font-display text-lg mb-2">{upper("Son antrenmanlar")}</h2>
+      <div className="mb-6">
+        <WorkoutHistoryList days={days} />
+      </div>
 
       {records.length === 0 ? (
         <div className="fit-card p-6 text-center text-sm text-muted">
