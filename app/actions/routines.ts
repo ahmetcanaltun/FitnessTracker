@@ -155,3 +155,28 @@ export async function moveRoutineItem(itemId: string, direction: "up" | "down") 
   revalidatePath(`/routines/${item.routineId}`);
   return { ok: true as const };
 }
+
+const weekdaysSchema = z.array(z.number().int().min(1).max(7)).max(7);
+
+/** Rutinin haftanın hangi günlerinde yapıldığı — haftalık kas hesabının çarpanı. */
+export async function updateRoutineWeekdays(routineId: string, weekdays: number[]) {
+  const user = await requireUser();
+
+  const parsed = weekdaysSchema.safeParse(weekdays);
+  if (!parsed.success) {
+    return { ok: false as const, error: "Geçersiz gün seçimi." };
+  }
+
+  // userId ile daraltma: başkasının rutini güncellenemez
+  const result = await prisma.routine.updateMany({
+    where: { id: routineId, userId: user.id },
+    data: { weekdays: [...new Set(parsed.data)].sort((a, b) => a - b) },
+  });
+  if (result.count === 0) {
+    return { ok: false as const, error: "Rutin bulunamadı." };
+  }
+
+  revalidatePath(`/routines/${routineId}`);
+  revalidatePath("/routines");
+  return { ok: true as const };
+}

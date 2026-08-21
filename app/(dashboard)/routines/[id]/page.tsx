@@ -4,6 +4,9 @@ import { ChevronLeft } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RoutineDetail } from "@/components/routine-detail";
+import { MuscleMap } from "@/components/muscle-map";
+import { WeekdayPicker } from "@/components/weekday-picker";
+import { sessionMuscleVolume } from "@/lib/muscle-map";
 
 export default async function RoutineDetailPage({
   params,
@@ -20,13 +23,34 @@ export default async function RoutineDetailPage({
       items: {
         orderBy: { position: "asc" },
         include: {
-          exercise: { select: { id: true, name: true, category: true, equipment: true } },
+          exercise: {
+            select: {
+              id: true,
+              name: true,
+              category: true,
+              equipment: true,
+              primaryMuscles: true,
+              secondaryMuscles: true,
+            },
+          },
         },
       },
     },
   });
 
   if (!routine) notFound();
+
+  // Bu tek antrenmanın kas dağılımı (gün çarpanı yok — haftalık toplam /routines'te)
+  const volume = sessionMuscleVolume(
+    routine.items.map((item) => ({
+      targetSets: item.targetSets,
+      primaryMuscles: item.exercise.primaryMuscles,
+      secondaryMuscles: item.exercise.secondaryMuscles,
+    })),
+  );
+  const missingCount = routine.items.filter(
+    (item) => item.exercise.primaryMuscles.length === 0,
+  ).length;
 
   // Hedef ağırlık girilmemiş hareketler için son kaydı öneri olarak göster
   const exerciseIds = routine.items.map((item) => item.exercise.id);
@@ -49,6 +73,12 @@ export default async function RoutineDetailPage({
         <ChevronLeft size={18} />
         <span className="text-sm">Rutinler</span>
       </Link>
+
+      <WeekdayPicker routineId={routine.id} initial={routine.weekdays} />
+
+      <div className="mb-5">
+        <MuscleMap volume={volume} missingCount={missingCount} />
+      </div>
 
       <RoutineDetail
         routineId={routine.id}
